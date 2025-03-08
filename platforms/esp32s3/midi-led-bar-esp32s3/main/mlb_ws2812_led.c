@@ -1,4 +1,5 @@
 #include "mlb_ws2812_led.h"
+#include "mlb_settings.h"
 
 #define RMT_LED_STRIP_RESOLUTION_HZ 10000000 // 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
 #define RMT_LED_STRIP_GPIO_NUM GPIO_NUM_6    // 设置用于输出的 GPIO 口
@@ -49,12 +50,31 @@ void mlb_led_loop()
         .loop_count = 0, // no transfer loop
     };
 
+    SettingsAll *settings = mlb_settings_get_all();
+    uint8_t *payload_begin = led_strip_pixels;
+    uint8_t *payload_end = led_strip_pixels;
+    uint8_t *payload_max = led_strip_pixels + sizeof(led_strip_pixels);
+    size_t payload_size = 0;
+    uint16_t offset = 0;
+    uint16_t limit = 0;
+
     while (1)
     {
-        // Flush RGB values to LEDs
-        ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config));
-        ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
         vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS));
+
+        offset = settings->led.output_offset;
+        limit = settings->led.output_limit;
+
+        payload_size = limit * 3;
+        payload_begin = led_strip_pixels + (offset * 3);
+        payload_end = payload_begin + payload_size;
+
+        if ((led_strip_pixels <= payload_begin) && (payload_begin < payload_end) && (payload_end <= payload_max))
+        {
+            // Flush RGB values to LEDs
+            ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, payload_begin, payload_size, &tx_config));
+            ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
+        }
     }
 }
 
