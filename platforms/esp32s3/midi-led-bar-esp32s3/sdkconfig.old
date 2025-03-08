@@ -563,6 +563,72 @@ CONFIG_COMPILER_ORPHAN_SECTIONS_PLACE=y
 #
 
 #
+# Driver Configurations
+#
+
+#
+# TWAI Configuration
+#
+# CONFIG_TWAI_ISR_IN_IRAM is not set
+CONFIG_TWAI_ERRATA_FIX_LISTEN_ONLY_DOM=y
+# end of TWAI Configuration
+
+#
+# Legacy ADC Driver Configuration
+#
+# CONFIG_ADC_SUPPRESS_DEPRECATE_WARN is not set
+
+#
+# Legacy ADC Calibration Configuration
+#
+# CONFIG_ADC_CALI_SUPPRESS_DEPRECATE_WARN is not set
+# end of Legacy ADC Calibration Configuration
+# end of Legacy ADC Driver Configuration
+
+#
+# Legacy MCPWM Driver Configurations
+#
+# CONFIG_MCPWM_SUPPRESS_DEPRECATE_WARN is not set
+# end of Legacy MCPWM Driver Configurations
+
+#
+# Legacy Timer Group Driver Configurations
+#
+# CONFIG_GPTIMER_SUPPRESS_DEPRECATE_WARN is not set
+# end of Legacy Timer Group Driver Configurations
+
+#
+# Legacy RMT Driver Configurations
+#
+# CONFIG_RMT_SUPPRESS_DEPRECATE_WARN is not set
+# end of Legacy RMT Driver Configurations
+
+#
+# Legacy I2S Driver Configurations
+#
+# CONFIG_I2S_SUPPRESS_DEPRECATE_WARN is not set
+# end of Legacy I2S Driver Configurations
+
+#
+# Legacy PCNT Driver Configurations
+#
+# CONFIG_PCNT_SUPPRESS_DEPRECATE_WARN is not set
+# end of Legacy PCNT Driver Configurations
+
+#
+# Legacy SDM Driver Configurations
+#
+# CONFIG_SDM_SUPPRESS_DEPRECATE_WARN is not set
+# end of Legacy SDM Driver Configurations
+
+#
+# Legacy Temperature Sensor Driver Configurations
+#
+# CONFIG_TEMP_SENSOR_SUPPRESS_DEPRECATE_WARN is not set
+# end of Legacy Temperature Sensor Driver Configurations
+# end of Driver Configurations
+
+#
 # eFuse Bit Manager
 #
 # CONFIG_EFUSE_CUSTOM_TABLE is not set
@@ -583,6 +649,66 @@ CONFIG_ESP_ERR_TO_NAME_LOOKUP=y
 # end of ESP-Driver:GPIO Configurations
 
 #
+# ESP-Driver:GPTimer Configurations
+#
+CONFIG_GPTIMER_ISR_HANDLER_IN_IRAM=y
+# CONFIG_GPTIMER_CTRL_FUNC_IN_IRAM is not set
+# CONFIG_GPTIMER_ISR_IRAM_SAFE is not set
+# CONFIG_GPTIMER_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:GPTimer Configurations
+
+#
+# ESP-Driver:I2C Configurations
+#
+# CONFIG_I2C_ISR_IRAM_SAFE is not set
+# CONFIG_I2C_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:I2C Configurations
+
+#
+# ESP-Driver:I2S Configurations
+#
+# CONFIG_I2S_ISR_IRAM_SAFE is not set
+# CONFIG_I2S_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:I2S Configurations
+
+#
+# ESP-Driver:LEDC Configurations
+#
+# CONFIG_LEDC_CTRL_FUNC_IN_IRAM is not set
+# end of ESP-Driver:LEDC Configurations
+
+#
+# ESP-Driver:MCPWM Configurations
+#
+# CONFIG_MCPWM_ISR_IRAM_SAFE is not set
+# CONFIG_MCPWM_CTRL_FUNC_IN_IRAM is not set
+# CONFIG_MCPWM_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:MCPWM Configurations
+
+#
+# ESP-Driver:PCNT Configurations
+#
+# CONFIG_PCNT_CTRL_FUNC_IN_IRAM is not set
+# CONFIG_PCNT_ISR_IRAM_SAFE is not set
+# CONFIG_PCNT_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:PCNT Configurations
+
+#
+# ESP-Driver:RMT Configurations
+#
+# CONFIG_RMT_ISR_IRAM_SAFE is not set
+# CONFIG_RMT_RECV_FUNC_IN_IRAM is not set
+# CONFIG_RMT_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:RMT Configurations
+
+#
+# ESP-Driver:Sigma Delta Modulator Configurations
+#
+# CONFIG_SDM_CTRL_FUNC_IN_IRAM is not set
+# CONFIG_SDM_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:Sigma Delta Modulator Configurations
+
+#
 # ESP-Driver:SPI Configurations
 #
 # CONFIG_SPI_MASTER_IN_IRAM is not set
@@ -590,6 +716,12 @@ CONFIG_SPI_MASTER_ISR_IN_IRAM=y
 # CONFIG_SPI_SLAVE_IN_IRAM is not set
 CONFIG_SPI_SLAVE_ISR_IN_IRAM=y
 # end of ESP-Driver:SPI Configurations
+
+#
+# ESP-Driver:Temperature Sensor Configurations
+#
+# CONFIG_TEMP_SENSOR_ENABLE_DEBUG_LOG is not set
+# end of ESP-Driver:Temperature Sensor Configurations
 
 #
 # ESP-Driver:UART Configurations
@@ -1512,9 +1644,10 @@ CONFIG_TINYUSB_TASK_AFFINITY=0x1
 CONFIG_TINYUSB_DESC_USE_ESPRESSIF_VID=y
 CONFIG_TINYUSB_DESC_USE_DEFAULT_PID=y
 CONFIG_TINYUSB_DESC_BCD_DEVICE=0x0100
-CONFIG_TINYUSB_DESC_MANUFACTURER_STRING="Espressif Systems"
-CONFIG_TINYUSB_DESC_PRODUCT_STRING="Espressif Device"
+CONFIG_TINYUSB_DESC_MANUFACTURER_STRING="XuShiFu"
+CONFIG_TINYUSB_DESC_PRODUCT_STRING="MIDI-LED-BAR"
 CONFIG_TINYUSB_DESC_SERIAL_STRING="123456"
+CONFIG_TINYUSB_DESC_CDC_STRING="Espressif CDC Device"
 # end of Descriptor configuration
 
 #
@@ -1526,7 +1659,10 @@ CONFIG_TINYUSB_DESC_SERIAL_STRING="123456"
 #
 # Communication Device Class (CDC)
 #
-# CONFIG_TINYUSB_CDC_ENABLED is not set
+CONFIG_TINYUSB_CDC_ENABLED=y
+CONFIG_TINYUSB_CDC_COUNT=1
+CONFIG_TINYUSB_CDC_RX_BUFSIZE=512
+CONFIG_TINYUSB_CDC_TX_BUFSIZE=512
 # end of Communication Device Class (CDC)
 
 #
@@ -1538,7 +1674,7 @@ CONFIG_TINYUSB_MIDI_COUNT=1
 #
 # Human Interface Device Class (HID)
 #
-CONFIG_TINYUSB_HID_COUNT=0
+CONFIG_TINYUSB_HID_COUNT=1
 # end of Human Interface Device Class (HID)
 
 #

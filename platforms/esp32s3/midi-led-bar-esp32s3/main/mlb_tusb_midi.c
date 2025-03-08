@@ -1,6 +1,22 @@
 
 #include "mlb_tusb_midi.h"
 
+////////////////////////////////////////////////////////////////////////////////
+
+#define MIDI_KEY_COUNT 128
+
+// Basic MIDI Messages
+#define NOTE_OFF 0x80
+#define NOTE_ON 0x90
+
+////////////////////////////////////////////////////////////////////////////////
+// inner functions
+
+void mlb_midi_handle_event_rx(uint8_t *buffer, uint cb);
+bool mlb_midi_decode_event(uint8_t *buffer, uint cb, MidiKeyState *ret);
+
+////////////////////////////////////////////////////////////////////////////////
+
 /** Helper defines **/
 
 // Interface counter
@@ -72,26 +88,7 @@ static void midi_task_read_example(void *arg)
     // The MIDI interface always creates input and output port/jack descriptors
     // regardless of these being used or not. Therefore incoming traffic should be read
     // (possibly just discarded) to avoid the sender blocking in IO
-    uint8_t packet[4];
-    bool read = false;
-    for (;;)
-    {
-        vTaskDelay(1);
-        while (tud_midi_available())
-        {
-            read = tud_midi_packet_read(packet);
-            if (read)
-            {
-                ESP_LOGI(TAG, "Read - Time (ms since boot): %lld, Data: %02hhX %02hhX %02hhX %02hhX",
-                         esp_timer_get_time(), packet[0], packet[1], packet[2], packet[3]);
-            }
-        }
-    }
 }
-
-// Basic MIDI Messages
-#define NOTE_OFF 0x80
-#define NOTE_ON 0x90
 
 static void periodic_midi_write_example_cb(void *arg)
 {
@@ -140,7 +137,34 @@ static void periodic_midi_write_example_cb(void *arg)
 
 void tusb_midi_app_main(void)
 {
+
+    // Periodically send MIDI packets
+    // int const tempo = 286;
+    // const esp_timer_create_args_t periodic_midi_args = {
+    //     .callback = &periodic_midi_write_example_cb,
+    //     /* name is optional, but may help identify the timer when debugging */
+    //     .name = "periodic_midi"};
+
+    // ESP_LOGI(TAG, "MIDI write task init");
+    // esp_timer_handle_t periodic_midi_timer;
+    // ESP_ERROR_CHECK(esp_timer_create(&periodic_midi_args, &periodic_midi_timer));
+    // ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_midi_timer, tempo * 1000));
+
+    // Read received MIDI packets
+    // ESP_LOGI(TAG, "MIDI read task init");
+    // xTaskCreate(midi_task_read_example, "midi_task_read_example", 2 * 1024, NULL, 5, NULL);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+static MidiKeyState the_midi_key_state_buffer[MIDI_KEY_COUNT];
+
+void mlb_midi_init()
+{
+    ESP_LOGI(TAG, "run mlb_midi_init");
     ESP_LOGI(TAG, "USB initialization");
+
+    memset(the_midi_key_state_buffer, 0, sizeof(the_midi_key_state_buffer));
 
     tinyusb_config_t const tusb_cfg = {
         .device_descriptor = NULL, // If device_descriptor is NULL, tinyusb_driver_install() will use Kconfig
@@ -158,32 +182,88 @@ void tusb_midi_app_main(void)
     ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
 
     ESP_LOGI(TAG, "USB initialization DONE");
-
-    // Periodically send MIDI packets
-    int const tempo = 286;
-    const esp_timer_create_args_t periodic_midi_args = {
-        .callback = &periodic_midi_write_example_cb,
-        /* name is optional, but may help identify the timer when debugging */
-        .name = "periodic_midi"};
-
-    ESP_LOGI(TAG, "MIDI write task init");
-    esp_timer_handle_t periodic_midi_timer;
-    ESP_ERROR_CHECK(esp_timer_create(&periodic_midi_args, &periodic_midi_timer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_midi_timer, tempo * 1000));
-
-    // Read received MIDI packets
-    ESP_LOGI(TAG, "MIDI read task init");
-    xTaskCreate(midi_task_read_example, "midi_task_read_example", 2 * 1024, NULL, 5, NULL);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-void mlb_midi_init()
-{
-    ESP_LOGI(TAG, "run mlb_midi_init");
 }
 
 void mlb_midi_loop()
 {
     ESP_LOGI(TAG, "run mlb_midi_loop");
+
+    uint8_t packet[4];
+    bool read = false;
+    for (;;)
+    {
+        while (tud_midi_available())
+        {
+            read = tud_midi_packet_read(packet);
+            if (read)
+            {
+                ESP_LOGI(TAG, "debug:midi:Read - Time (ms since boot): %lld, Data: %02hhX %02hhX %02hhX %02hhX",
+                         esp_timer_get_time(), packet[0], packet[1], packet[2], packet[3]);
+                mlb_midi_handle_event_rx(packet, sizeof(packet));
+            }
+        }
+        vTaskDelay(1);
+    }
+}
+
+void mlb_midi_handle_event_rx(uint8_t *buffer, uint cb)
+{
+    MidiKeyState src;
+    bool ok = mlb_midi_decode_event(buffer, cb, &src);
+    if (ok)
+    {
+        MidiKeyState *dst = mlb_midi_get_key_state_cell(src.note);
+        if (dst)
+        {
+            dst->channel = src.channel;
+            dst->note = src.note;
+            dst->velocity = src.velocity;
+            dst->revision1++;
+            ESP_LOGI(TAG, "debug:midi:on_key_state_change: note_%d", src.note);
+        }
+    }
+}
+
+bool mlb_midi_decode_event(uint8_t *buffer, uint cb, MidiKeyState *ret)
+{
+
+    if ((buffer == NULL) || (ret == NULL) || (cb != 4))
+    {
+        return false;
+    }
+
+    // buffer[0] = ignore
+    uint8_t event = buffer[1] & 0xf0;
+    ret->channel = buffer[1] & 0x0f;
+    ret->note = buffer[2] & 0x7f;
+    ret->velocity = buffer[3] & 0x7f;
+
+    if (event == NOTE_ON)
+    {
+        return true;
+    }
+    else if (event == NOTE_OFF)
+    {
+        ret->velocity = 0;
+        return true;
+    }
+    return false;
+}
+
+MidiKeyState *mlb_midi_get_key_state_buffer(uint *out_count)
+{
+    if (out_count)
+    {
+        out_count[0] = MIDI_KEY_COUNT;
+    }
+    return the_midi_key_state_buffer;
+}
+
+MidiKeyState *mlb_midi_get_key_state_cell(uint index)
+{
+    if (index < MIDI_KEY_COUNT)
+    {
+        return the_midi_key_state_buffer + index;
+    }
+    return NULL;
 }

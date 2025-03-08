@@ -1,12 +1,9 @@
 #include "mlb_ws2812_led.h"
 
 #define RMT_LED_STRIP_RESOLUTION_HZ 10000000 // 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
-#define RMT_LED_STRIP_GPIO_NUM GPIO_NUM_21   // 0
-
-#define EXAMPLE_LED_NUMBERS 88
-#define EXAMPLE_CHASE_SPEED_MS 5
-
-// static const char *TAG = "WS2812";
+#define RMT_LED_STRIP_GPIO_NUM GPIO_NUM_6    // 设置用于输出的 GPIO 口
+#define EXAMPLE_LED_NUMBERS 128              // 灯带缓冲区的大小 (LED 的个数)
+#define EXAMPLE_CHASE_SPEED_MS 3             // 每个刷新周期中, delay 的时长, 单位是 ms
 
 static uint8_t led_strip_pixels[EXAMPLE_LED_NUMBERS * 3];
 
@@ -20,11 +17,11 @@ void mlb_led_loop()
 {
     ESP_LOGI(TAG, "run mlb_led_loop");
 
-    uint32_t red = 0;
-    uint32_t green = 0;
-    uint32_t blue = 0;
-    uint16_t hue = 0;
-    uint16_t start_rgb = 0;
+    // uint32_t red = 0;
+    // uint32_t green = 0;
+    // uint32_t blue = 0;
+    // uint16_t hue = 0;
+    // uint16_t start_rgb = 0;
 
     ESP_LOGI(TAG, "Create RMT TX channel");
     rmt_channel_handle_t led_chan = NULL;
@@ -52,40 +49,42 @@ void mlb_led_loop()
         .loop_count = 0, // no transfer loop
     };
 
-    memset(led_strip_pixels, 0x33, sizeof(led_strip_pixels));
-
     while (1)
     {
-        for (int i = 0; i < 3; i++)
-        {
-
-            // for (int j = i; j < EXAMPLE_LED_NUMBERS; j += 3)
-            // {
-            //     // Build RGB pixels
-            //     hue = j * 360 / EXAMPLE_LED_NUMBERS + start_rgb;
-            //     // led_strip_hsv2rgb(hue, 100, 100, &red, &green, &blue);
-
-            //     red = (sin(hue + 1) + 1) * 127;
-            //     green = (sin(hue + 2) + 1) * 127;
-            //     blue = (sin(hue + 3) + 1) * 127;
-
-            //     // red = green = blue = 250;
-
-            //     led_strip_pixels[j * 3 + 0] = green / 10;
-            //     led_strip_pixels[j * 3 + 1] = blue / 10;
-            //     led_strip_pixels[j * 3 + 2] = red / 10;
-            // }
-
-            // Flush RGB values to LEDs
-            ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config));
-            ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
-            vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS));
-
-            // memset(led_strip_pixels, 0, sizeof(led_strip_pixels));
-            // ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config));
-            // ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
-            // vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS / 10));
-        }
-        start_rgb += 60;
+        // Flush RGB values to LEDs
+        ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, led_strip_pixels, sizeof(led_strip_pixels), &tx_config));
+        ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
+        vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS));
     }
+}
+
+uint mlb_led_count()
+{
+    return EXAMPLE_LED_NUMBERS;
+}
+
+void mlb_led_set_color(uint index, uint8_t r, uint8_t g, uint8_t b)
+{
+    if (index >= EXAMPLE_LED_NUMBERS)
+    {
+        return;
+    }
+    led_strip_pixels[(3 * index) + 0] = r;
+    led_strip_pixels[(3 * index) + 1] = g;
+    led_strip_pixels[(3 * index) + 2] = b;
+}
+
+void mlb_led_get_color(uint index, uint8_t *r, uint8_t *g, uint8_t *b)
+{
+    if (index >= EXAMPLE_LED_NUMBERS)
+    {
+        return;
+    }
+    if (r == NULL || g == NULL || b == NULL)
+    {
+        return;
+    }
+    r[0] = led_strip_pixels[(3 * index) + 0];
+    g[0] = led_strip_pixels[(3 * index) + 1];
+    b[0] = led_strip_pixels[(3 * index) + 2];
 }
