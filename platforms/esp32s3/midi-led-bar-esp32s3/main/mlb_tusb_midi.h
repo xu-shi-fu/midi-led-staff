@@ -14,6 +14,8 @@ typedef struct
     uint8_t revision1;
     uint8_t revision2;
 
+    uint8_t led; // 映射到 LED 的 index
+
 } MidiKeyState;
 
 void mlb_midi_init();

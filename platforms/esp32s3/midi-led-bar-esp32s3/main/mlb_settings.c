@@ -10,8 +10,8 @@ void mlb_settings_init()
     memset(all, 0, sizeof(the_settings_all));
 
     // temp: 暂时写死这些参数,便于调试
-    all->led.output_offset = 24; // 从第 24 键开始输出
-    all->led.output_limit = 61;  // 共 61 键
+    all->led.output_offset = 0; // 从第 0 键开始输出
+    all->led.output_limit = 12; // 共 12 键 (C to B)
 }
 
 void mlb_settings_loop()

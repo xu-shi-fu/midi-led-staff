@@ -13,6 +13,8 @@
 
 #include "driver/gpio.h"
 #include "driver/rmt_tx.h"
+#include "nvs.h"
+#include "nvs_flash.h"
 
 #include "esp_log.h"
 #include "esp_timer.h"
@@ -27,5 +29,7 @@
 #include "tinyusb.h"
 
 extern const char *TAG;
+
+#define MLB_ENABLE_TUSB_MIDI 0 // 0='no';1='yes'
 
 #endif // __common_h__

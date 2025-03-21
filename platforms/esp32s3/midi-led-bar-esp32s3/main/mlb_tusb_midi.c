@@ -83,6 +83,8 @@ static const uint8_t s_midi_hs_cfg_desc[] = {
 };
 #endif // TUD_OPT_HIGH_SPEED
 
+/*
+
 static void midi_task_read_example(void *arg)
 {
     // The MIDI interface always creates input and output port/jack descriptors
@@ -142,7 +144,7 @@ void tusb_midi_app_main(void)
     // int const tempo = 286;
     // const esp_timer_create_args_t periodic_midi_args = {
     //     .callback = &periodic_midi_write_example_cb,
-    //     /* name is optional, but may help identify the timer when debugging */
+    //      name is optional, but may help identify the timer when debugging
     //     .name = "periodic_midi"};
 
     // ESP_LOGI(TAG, "MIDI write task init");
@@ -155,16 +157,28 @@ void tusb_midi_app_main(void)
     // xTaskCreate(midi_task_read_example, "midi_task_read_example", 2 * 1024, NULL, 5, NULL);
 }
 
+*/
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static MidiKeyState the_midi_key_state_buffer[MIDI_KEY_COUNT];
 
-void mlb_midi_init()
+void mlb_midi_init_key_state()
 {
-    ESP_LOGI(TAG, "run mlb_midi_init");
-    ESP_LOGI(TAG, "USB initialization");
-
     memset(the_midi_key_state_buffer, 0, sizeof(the_midi_key_state_buffer));
+    for (int i = 0; i < MIDI_KEY_COUNT; ++i)
+    {
+        MidiKeyState *state = the_midi_key_state_buffer + i;
+        state->note = i;
+        state->led = i % 12;
+        state->revision1 = 1;
+        state->velocity = (i % 12) + 1;
+    }
+}
+
+void mlb_tusb_midi_init()
+{
+    ESP_LOGI(TAG, "USB initialization");
 
     tinyusb_config_t const tusb_cfg = {
         .device_descriptor = NULL, // If device_descriptor is NULL, tinyusb_driver_install() will use Kconfig
@@ -184,28 +198,6 @@ void mlb_midi_init()
     ESP_LOGI(TAG, "USB initialization DONE");
 }
 
-void mlb_midi_loop()
-{
-    ESP_LOGI(TAG, "run mlb_midi_loop");
-
-    uint8_t packet[4];
-    bool read = false;
-    for (;;)
-    {
-        while (tud_midi_available())
-        {
-            read = tud_midi_packet_read(packet);
-            if (read)
-            {
-                ESP_LOGI(TAG, "debug:midi:Read - Time (ms since boot): %lld, Data: %02hhX %02hhX %02hhX %02hhX",
-                         esp_timer_get_time(), packet[0], packet[1], packet[2], packet[3]);
-                mlb_midi_handle_event_rx(packet, sizeof(packet));
-            }
-        }
-        vTaskDelay(1);
-    }
-}
-
 void mlb_midi_handle_event_rx(uint8_t *buffer, uint cb)
 {
     MidiKeyState src;
@@ -219,7 +211,7 @@ void mlb_midi_handle_event_rx(uint8_t *buffer, uint cb)
             dst->note = src.note;
             dst->velocity = src.velocity;
             dst->revision1++;
-            ESP_LOGI(TAG, "debug:midi:on_key_state_change: note_%d", src.note);
+            // ESP_LOGI(TAG, "debug:midi:on_key_state_change: note_%d", src.note);
         }
     }
 }
@@ -266,4 +258,46 @@ MidiKeyState *mlb_midi_get_key_state_cell(uint index)
         return the_midi_key_state_buffer + index;
     }
     return NULL;
+}
+
+void mlb_tusb_midi_run_loop()
+{
+    uint8_t packet[4];
+    bool read = false;
+    for (;;)
+    {
+        while (tud_midi_available())
+        {
+            read = tud_midi_packet_read(packet);
+            if (read)
+            {
+                // ESP_LOGI(TAG, "debug:midi:Read - Time (ms since boot): %lld, Data: %02hhX %02hhX %02hhX %02hhX",
+                //          esp_timer_get_time(), packet[0], packet[1], packet[2], packet[3]);
+                mlb_midi_handle_event_rx(packet, sizeof(packet));
+            }
+        }
+        vTaskDelay(1);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// api
+
+void mlb_midi_init()
+{
+    ESP_LOGI(TAG, "run mlb_midi_init");
+    mlb_midi_init_key_state();
+    if (MLB_ENABLE_TUSB_MIDI)
+    {
+        mlb_tusb_midi_init();
+    }
+}
+
+void mlb_midi_loop()
+{
+    ESP_LOGI(TAG, "run mlb_midi_loop");
+    if (MLB_ENABLE_TUSB_MIDI)
+    {
+        mlb_tusb_midi_run_loop();
+    }
 }

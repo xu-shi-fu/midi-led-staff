@@ -94,6 +94,15 @@ void mlb_led_set_color(uint index, uint8_t r, uint8_t g, uint8_t b)
     led_strip_pixels[(3 * index) + 2] = b;
 }
 
+void mlb_led_set_color_rgb(uint index, ColorRGB *rgb)
+{
+    if (rgb == NULL)
+    {
+        return;
+    }
+    mlb_led_set_color(index, rgb->r, rgb->g, rgb->b);
+}
+
 void mlb_led_get_color(uint index, uint8_t *r, uint8_t *g, uint8_t *b)
 {
     if (index >= EXAMPLE_LED_NUMBERS)
@@ -107,4 +116,14 @@ void mlb_led_get_color(uint index, uint8_t *r, uint8_t *g, uint8_t *b)
     r[0] = led_strip_pixels[(3 * index) + 0];
     g[0] = led_strip_pixels[(3 * index) + 1];
     b[0] = led_strip_pixels[(3 * index) + 2];
+}
+
+ColorRGB mlb_rgb(uint8_t r, uint8_t g, uint8_t b)
+{
+    ColorRGB rgb;
+    rgb.a = 255;
+    rgb.r = r;
+    rgb.g = g;
+    rgb.b = b;
+    return rgb;
 }
