@@ -1,4 +1,4 @@
-// midi-led-bar.scad
+// midi-led-staff.scad
 
 depth = 10; // z
 height = 15; // y
