@@ -1,5 +1,8 @@
 #include "mls_tasks.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// fn
+
 void mls_tasks_sleep(uint32_t ms)
 {
     vTaskDelay(ms / portTICK_PERIOD_MS);
@@ -35,6 +38,9 @@ void mls_tasks_common_fn(void *p)
     mls_tasks_run_idle_loop();
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// task
+
 mls_error mls_tasks_init(mls_task *t)
 {
     if (t)
@@ -69,3 +75,25 @@ mls_error mls_tasks_run(mls_task *t)
 
     return t->fn(t->app);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// mutex
+
+void mls_mutex_init(mls_mutex *m)
+{
+
+    // todo ...
+}
+
+void mls_mutex_lock(mls_mutex *m)
+{
+    // todo ...
+}
+
+void mls_mutex_unlock(mls_mutex *m)
+{
+    // todo ...
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// EOF

@@ -13,12 +13,17 @@ typedef struct
 {
     size_t capacity;
     size_t length;
+    bool overflow;
+
     uint8_t data[0];
 
 } mls_buffer;
 
 mls_buffer *mls_buffer_create(size_t capacity);
 void mls_buffer_release(mls_buffer *buffer);
+void mls_buffer_reset(mls_buffer *buffer);
+void mls_buffer_write(mls_buffer *buffer, uint8_t *data, size_t len);
+bool mls_buffer_is_overflow(mls_buffer *buffer);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -48,6 +53,18 @@ typedef struct
 void mls_buffer_holder_auto_create(mls_buffer_holder_auto *a, mls_buffer_holder *holder);
 void mls_buffer_holder_auto_release(mls_buffer_holder_auto *a);
 bool mls_buffer_holder_auto_ready(mls_buffer_holder_auto *a);
+
+////////////////////////////////////////////////////////////////////////////////
+
+// mls_buffer_slice 指向实际缓冲区的一个片段
+typedef struct
+{
+
+    mls_buffer *buffer;
+    uint8_t *data;
+    size_t length;
+
+} mls_buffer_slice;
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -43,11 +43,11 @@ mls_error mls_task_engine(mls_app *app)
     return mls_engine_loop(&app->engine);
 }
 
-mls_error mls_task_udp_server(mls_app *app)
+mls_error mls_task_cp_udp_adapter(mls_app *app)
 {
     const bool infinity = true;
-    mls_udp_server *server = &app->udp_server;
-    return mls_udp_server_loop(server, infinity);
+    mls_cp_udp_adapter *adapter = &app->udp_adapter;
+    return mls_cp_udp_adapter_loop(adapter, infinity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,13 @@ mls_error mls_app_init(mls_app *app)
 
     // mls_midi_init();
 
-    err = mls_udp_server_init(&app->udp_server);
+    err = mls_cp_server_init(&app->server);
+    if (err)
+    {
+        return err;
+    }
+
+    err = mls_cp_udp_adapter_init(&app->udp_adapter);
     if (err)
     {
         return err;
@@ -85,6 +91,9 @@ mls_error mls_app_init(mls_app *app)
     {
         return err;
     }
+
+    // wire
+    app->udp_adapter.server = &app->server;
 
     return NULL;
 }
@@ -127,8 +136,8 @@ mls_error mls_app_start(mls_app *app)
     task->app = app;
 
     task = &tg->udp_server;
-    task->name = "udp-server";
-    task->fn = mls_task_udp_server;
+    task->name = "cp-udp-adapter";
+    task->fn = mls_task_cp_udp_adapter;
     task->app = app;
 
     // start all

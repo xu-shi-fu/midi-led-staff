@@ -5,25 +5,23 @@
 
 #include "mls_common.h"
 #include "mls_errors.h"
-#include "mls_app.h"
 
-// static TaskHandle_t task_handle_led = NULL;
-// static TaskHandle_t task_handle_ble = NULL;
-// static TaskHandle_t task_handle_midi = NULL;
-// static TaskHandle_t task_handle_engine = NULL;
-// static TaskHandle_t task_handle_wifi = NULL;
-// static TaskHandle_t task_handle_udp = NULL;
+// #include "mls_app.h"
+
+struct mls_app_t;
 
 /***
  * 函数指针
  */
 
-typedef mls_error (*mls_task_func)(mls_app *);
+typedef mls_error (*mls_task_func)(struct mls_app_t *);
+
+// struct
 
 typedef struct
 {
     mls_error error;
-    mls_app *app;
+    struct mls_app_t *app;
     mls_task_func fn;
     uint priority;
     const char *name;
@@ -31,9 +29,19 @@ typedef struct
 
 } mls_task;
 
+typedef struct
+{
+} mls_mutex;
+
+// functions
+
 mls_error mls_tasks_init(mls_task *task);
 mls_error mls_tasks_start(mls_task *task);
 mls_error mls_tasks_run(mls_task *task);
 void mls_tasks_sleep(uint32_t ms);
+
+void mls_mutex_init(mls_mutex *m);
+void mls_mutex_lock(mls_mutex *m);
+void mls_mutex_unlock(mls_mutex *m);
 
 #endif // __mls_tasks_h__

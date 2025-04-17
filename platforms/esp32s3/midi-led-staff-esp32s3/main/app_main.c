@@ -13,7 +13,7 @@
 // #include "mls_wifi.h"
 // #include "mls_settings.h"
 // #include "mls_nvs.h"
-// #include "mls_udp_server.h"
+// #include "mls_cp_udp_adapter.h"
 
 #include "mls_app.h"
 #include "mls_tasks.h"

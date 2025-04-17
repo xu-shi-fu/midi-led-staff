@@ -10,12 +10,13 @@
 #include "mls_ble.h"
 #include "mls_ws2812_led.h"
 #include "mls_engine.h"
-#include "mls_udp_server.h"
+#include "mls_cp_udp_adapter.h"
 #include "mls_wifi.h"
 #include "mls_settings.h"
 #include "mls_nvs.h"
+#include "mls_cp_server.h"
 
-typedef struct
+typedef struct mls_app_t
 {
 
     // ble,config,ctrl_protocol,engine,nvs,settings,tusb_midi,udp_server,wifi,ws2812,
@@ -26,7 +27,9 @@ typedef struct
     // mls_buffer_holder udp_rx_buffer;
     // mls_buffer_holder udp_tx_buffer;
 
-    mls_udp_server udp_server;
+    mls_cp_udp_adapter udp_adapter;
+    mls_cp_server server;
+
     mls_led led;
     mls_engine engine;
 
