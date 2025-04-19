@@ -2,10 +2,12 @@ package mlscp
 
 import "net"
 
+// Response 表示一个响应包
 type Response struct {
-	Data   []byte
-	Remote *net.UDPAddr
-	Client *Client
+	Blocks  []*BlockEntity
+	Data    []byte
+	Remote  *net.UDPAddr
+	Context *TransactionContext
 }
 
 type RxFilterChain interface {

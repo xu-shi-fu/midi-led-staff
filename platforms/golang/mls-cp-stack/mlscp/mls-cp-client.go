@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 	"strconv"
-	"sync"
+	"time"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -21,36 +21,46 @@ type Configuration struct {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-type clientRuntime struct {
-	client *Client
-	conn   *net.UDPConn
-	remote *net.UDPAddr
-	// handler Handler // use ResponseListener
-	closer  io.Closer // ref to conn
-	filters RTX
+type Session interface {
+	io.Closer
+}
 
-	started  bool
-	stopped  bool
-	starting bool
-	stopping bool
+type clientRuntime struct {
+	context *SessionContext
+
+	// handler Handler // use ResponseListener
+	closer io.Closer // ref to conn
+
+	shareTransactionContext *TransactionContext
+}
+
+func (inst *clientRuntime) _impl() Session {
+	return inst
 }
 
 func (inst *clientRuntime) run() {
 
 	defer func() {
-		inst.stopped = true
+		x := recover()
+		HandleErrorX(x)
 	}()
 
-	inst.starting = true
+	ctx := inst.context
 
+	defer func() {
+		ctx.Stopped = true
+	}()
+
+	ctx.Starting = true
 	err := inst.run2()
-	handleError(err)
+	ctx.Error = err
+	HandleError(err)
 }
 
 func (inst *clientRuntime) run2() error {
 
 	const network = "udp"
-	conf := inst.client.config
+	conf := inst.context.Parent.Config
 
 	port1 := conf.ClientPort
 
@@ -66,9 +76,16 @@ func (inst *clientRuntime) run2() error {
 		return err
 	}
 
+	filters, err := inst.loadFilters()
+	if err != nil {
+		return err
+	}
+
+	ctx := inst.context
+	ctx.Filters = *filters
+	ctx.Conn = conn
+	ctx.Started = true
 	inst.closer = conn
-	inst.conn = conn
-	inst.started = true
 
 	return inst.run3()
 }
@@ -78,7 +95,8 @@ func (inst *clientRuntime) run3() error {
 	// rx-loop
 
 	const bufferSize = 1024 * 2 // 实际上每个 UDP 包的大小不应超过大约 1.5K
-	conn := inst.conn
+	ctx := inst.context
+	conn := ctx.Conn
 	buffer := make([]byte, bufferSize)
 
 	for {
@@ -88,26 +106,86 @@ func (inst *clientRuntime) run3() error {
 		}
 		data := buffer[0:cb]
 		err = inst.handleRx(data, addr)
-		handleError(err)
+		HandleError(err)
 	}
 }
 
+func (inst *clientRuntime) reverseFilterList(src []RTXFilter) []RTXFilter {
+	dst := make([]RTXFilter, 0)
+	for i := len(src); i > 0; {
+		i--
+		dst = append(dst, src[i])
+	}
+	return dst
+}
+
+func (inst *clientRuntime) loadFilters() (*RTX, error) {
+
+	cfg := inst.context.Parent.Config
+	if cfg == nil {
+		return nil, fmt.Errorf("mls: config is nil")
+	}
+
+	filters := cfg.Filters
+	if filters == nil {
+		return nil, fmt.Errorf("mls: config.filters is nil")
+	}
+
+	src := filters.GetFilters()
+	if src == nil {
+		return nil, fmt.Errorf("mls: config.filters.list is nil")
+	}
+	src2 := inst.reverseFilterList(src)
+
+	rxBuilder := &RxFilterChainBuilder{}
+	txBuilder := &TxFilterChainBuilder{}
+
+	for _, item := range src {
+		rxBuilder.Add(item)
+	}
+
+	for _, item := range src2 {
+		txBuilder.Add(item)
+	}
+
+	rtx := &RTX{}
+	rtx.Rx = rxBuilder.Build()
+	rtx.Tx = txBuilder.Build()
+	return rtx, nil
+}
+
 func (inst *clientRuntime) handleRx(data []byte, addr *net.UDPAddr) error {
-	h := inst.filters.Rx
-	cl := inst.client
+	h := inst.context.Filters.Rx
+	ctx := inst.getShareTransactionContext()
 	resp := &Response{
-		Data:   data,
-		Client: cl,
-		Remote: addr,
+		Context: ctx,
+		Data:    data,
+		Remote:  addr,
 	}
 	return h.Rx(resp)
 }
 
+func (inst *clientRuntime) getShareTransactionContext() *TransactionContext {
+
+	share := inst.shareTransactionContext
+	if share != nil {
+		return share
+	}
+
+	share = &TransactionContext{}
+	share.Parent = inst.context
+	share.Request = nil
+	share.Response = nil
+
+	return share
+}
+
 func (inst *clientRuntime) start() error {
-	if inst.starting {
+	ctx := inst.context
+	if ctx.Starting {
 		return fmt.Errorf("re-call start()")
 	}
-	inst.starting = true
+	ctx.Starting = true
 	go func() {
 		inst.run()
 	}()
@@ -115,23 +193,30 @@ func (inst *clientRuntime) start() error {
 }
 
 func (inst *clientRuntime) waitUntilStarted() error {
-	if !inst.starting {
+	ctx := inst.context
+	if !ctx.Starting {
 		return fmt.Errorf("this runtime is not starting")
 	}
 	for {
-		if inst.started {
+		if ctx.Started {
 			return nil
 		}
-		if inst.stopped {
+
+		if ctx.Stopped {
+			err := ctx.Error
+			HandleError(err)
 			return fmt.Errorf("this runtime is stopped")
 		}
+
+		time.Sleep(time.Second)
 	}
 }
 
 func (inst *clientRuntime) send(data []byte) error {
 
-	addr := inst.remote
-	conn := inst.conn
+	ctx := inst.context
+	addr := ctx.Remote
+	conn := ctx.Conn
 	if addr == nil {
 		return fmt.Errorf("remote address is nil")
 	}
@@ -139,7 +224,7 @@ func (inst *clientRuntime) send(data []byte) error {
 		return fmt.Errorf("UDP connection is nil")
 	}
 
-	mtx := &inst.client.mutex
+	mtx := &ctx.Parent.Locker
 	mtx.Lock()
 	defer mtx.Unlock()
 
@@ -155,13 +240,14 @@ func (inst *clientRuntime) send(data []byte) error {
 
 func (inst *clientRuntime) Close() error {
 
-	if inst.stopping {
+	ctx := inst.context
+	if ctx.Stopping {
 		return fmt.Errorf("re-call Close()")
 	}
 
 	cl := inst.closer
 	inst.closer = nil
-	inst.stopping = true
+	ctx.Stopping = true
 
 	if cl == nil {
 		return nil
@@ -172,30 +258,42 @@ func (inst *clientRuntime) Close() error {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Client ...
-type Client struct {
-	mutex   sync.Mutex
-	config  *Configuration
-	runtime *clientRuntime
+type Client interface {
+
+	// as:
+	io.Closer
+	Dispatcher
+
+	Configuration() *Configuration
+}
+
+type clientImpl struct {
+	context *ClientContext
 	closer  io.Closer // ref to runtime
 }
 
-func (inst *Client) _impl() Dispatcher {
-	return inst
+func (inst *clientImpl) _impl() (Dispatcher, Client) {
+	return inst, inst
 }
 
-func (inst *Client) Tx(req *Request) error {
+func (inst *clientImpl) Configuration() *Configuration {
+	return inst.context.Config
+}
+
+func (inst *clientImpl) Tx(req *Request) error {
 	data := req.Data
-	rt := inst.runtime
-	if rt == nil {
-		return fmt.Errorf("no runtime")
+	session := inst.context.Current
+	if session == nil {
+		return fmt.Errorf("no session")
 	}
 	if data == nil {
 		return nil
 	}
-	return rt.send(data)
+	tx := session.Filters.Tx
+	return tx.Tx(req)
 }
 
-func (inst *Client) Close() error {
+func (inst *clientImpl) Close() error {
 	cl := inst.closer
 	inst.closer = nil
 	if cl == nil {
@@ -204,9 +302,9 @@ func (inst *Client) Close() error {
 	return cl.Close()
 }
 
-func (inst *Client) start() error {
+func (inst *clientImpl) start() error {
 
-	conf := inst.config
+	conf := inst.context.Config
 	port2 := conf.ServerPort
 	host2 := conf.ServerHost + ":" + strconv.Itoa(port2)
 	addr2, err := net.ResolveUDPAddr("udp", host2)
@@ -214,23 +312,32 @@ func (inst *Client) start() error {
 		return err
 	}
 
-	rt := &clientRuntime{
-		client: inst,
-		remote: addr2,
+	ctx1 := inst.context
+	ctx2 := &SessionContext{
+		Remote: addr2,
+		Parent: ctx1,
 	}
-	inst.runtime = rt
+
+	rt := &clientRuntime{
+		context: ctx2,
+	}
+	ctx1.Current = ctx2
 	inst.closer = rt
 
 	err = rt.start()
 	if err != nil {
 		return err
 	}
+
 	return rt.waitUntilStarted()
 }
 
-func Open(config *Configuration) (*Client, error) {
-	client := &Client{
-		config: config,
+func Open(config *Configuration) (Client, error) {
+	ctx := &ClientContext{
+		Config: config,
+	}
+	client := &clientImpl{
+		context: ctx,
 	}
 	err := client.start()
 	if err != nil {

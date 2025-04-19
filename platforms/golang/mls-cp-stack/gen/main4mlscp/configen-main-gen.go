@@ -34,6 +34,8 @@ func (inst*autoRegistrar) addAll() error {
     inst.register(&p9a99ad5d30_controllers_ExampleController{})
     inst.register(&p9a99ad5d30_controllers_TestController{})
     inst.register(&pb21ef5bbc1_impl_ConnectionServiceImpl{})
+    inst.register(&pb21ef5bbc1_impl_ExampleServiceImpl{})
+    inst.register(&pb21ef5bbc1_impl_TestServiceImpl{})
 
 
     return nil

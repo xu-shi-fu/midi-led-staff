@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/starter-go/libgin"
+	"github.com/xu-shi-fu/midi-led-staff/platforms/golang/mls-cp-stack/app/services"
 	"github.com/xu-shi-fu/midi-led-staff/platforms/golang/mls-cp-stack/app/web/vo"
 )
 
@@ -18,7 +20,9 @@ type TestController struct {
 	//starter:component
 	_as func(libgin.Controller) //starter:as(".")
 
-	Responder libgin.Responder //starter:inject("#")
+	Responder         libgin.Responder           //starter:inject("#")
+	ConnectionService services.ConnectionService //starter:inject("#")
+	TestService       services.TestService       //starter:inject("#")
 }
 
 func (inst *TestController) _impl() libgin.Controller {
@@ -34,8 +38,13 @@ func (inst *TestController) Registration() *libgin.ControllerRegistration {
 
 func (inst *TestController) route(rp libgin.RouterProxy) error {
 	rp = rp.For("tests")
+
 	rp.Handle(http.MethodGet, "", inst.handleGet)
 	rp.Handle(http.MethodGet, ":id", inst.handleGet)
+	rp.Handle(http.MethodGet, "connect", inst.handleGetConnect)
+	rp.Handle(http.MethodGet, "disconnect", inst.handleGetDisconnect)
+	rp.Handle(http.MethodGet, "ping", inst.handleGetPing)
+
 	return nil
 }
 
@@ -47,6 +56,36 @@ func (inst *TestController) handleGet(c *gin.Context) {
 		wantRequestBody: false,
 	}
 	req.execute(req.doGet)
+}
+
+func (inst *TestController) handleGetConnect(c *gin.Context) {
+	req := &TestRequest{
+		controller:      inst,
+		context:         c,
+		wantRequestID:   false,
+		wantRequestBody: false,
+	}
+	req.execute(req.doGetConnect)
+}
+
+func (inst *TestController) handleGetDisconnect(c *gin.Context) {
+	req := &TestRequest{
+		controller:      inst,
+		context:         c,
+		wantRequestID:   false,
+		wantRequestBody: false,
+	}
+	req.execute(req.doGetDisconnect)
+}
+
+func (inst *TestController) handleGetPing(c *gin.Context) {
+	req := &TestRequest{
+		controller:      inst,
+		context:         c,
+		wantRequestID:   false,
+		wantRequestBody: false,
+	}
+	req.execute(req.doGetPing)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -112,8 +151,43 @@ func (inst *TestRequest) send(err error) {
 }
 
 func (inst *TestRequest) doGet() error {
+	return fmt.Errorf("no impl")
+}
 
-	return nil
+func (inst *TestRequest) doGetConnect() error {
+
+	ctx := inst.context
+	ser := inst.controller.ConnectionService
+	p := &vo.Connections{}
+
+	strClientPort := ctx.Query("client.port")
+	strServerPort := ctx.Query("server.port")
+	strServerHost := ctx.Query("server.host")
+
+	clientPort, _ := strconv.Atoi(strClientPort)
+	serverPort, _ := strconv.Atoi(strServerPort)
+
+	if strServerHost == "" || serverPort == 0 || clientPort == 0 {
+		return fmt.Errorf("need query params: client.port & server.port & server.host")
+	}
+
+	p.ServerHost = strServerHost
+	p.ServerPort = serverPort
+	p.ClientPort = clientPort
+
+	return ser.Connect(ctx, p)
+}
+
+func (inst *TestRequest) doGetDisconnect() error {
+	ctx := inst.context
+	ser := inst.controller.ConnectionService
+	return ser.Disconnect(ctx)
+}
+
+func (inst *TestRequest) doGetPing() error {
+	ctx := inst.context
+	ser := inst.controller.TestService
+	return ser.Ping(ctx)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

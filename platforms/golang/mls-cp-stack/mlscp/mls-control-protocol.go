@@ -32,6 +32,16 @@ const (
 	TypeARGB BlockType = 0x41
 )
 
+// 接口
+
+type BlockBody interface {
+	Type() BlockType
+
+	Encoded() []byte
+
+	Decode(src []byte) error
+}
+
 // 结构
 
 type ARGB struct {
@@ -50,5 +60,5 @@ type BlockHead struct {
 
 type BlockEntity struct {
 	Head BlockHead
-	Body []byte
+	Body BlockBody
 }

@@ -1,7 +1,10 @@
 package mlscp
 
+// Request 表示一个请求包
 type Request struct {
-	Data []byte
+	Context *TransactionContext
+	Blocks  []*BlockEntity
+	Data    []byte
 }
 
 type TxFilter interface {
