@@ -34,35 +34,35 @@ func (inst *PackBuilder) innerAdd(body BlockBody) *PackBuilder {
 }
 
 func (inst *PackBuilder) AddUint8(n uint8) *PackBuilder {
-	body := &Uint8Body{
+	body := &BodyUint8{
 		Value: n,
 	}
 	return inst.innerAdd(body)
 }
 
 func (inst *PackBuilder) AddUint16(n uint16) *PackBuilder {
-	body := &Uint16Body{
+	body := &BodyUint16{
 		Value: n,
 	}
 	return inst.innerAdd(body)
 }
 
 func (inst *PackBuilder) AddUint32(n uint32) *PackBuilder {
-	body := &Uint32Body{
+	body := &BodyUint32{
 		Value: n,
 	}
 	return inst.innerAdd(body)
 }
 
 func (inst *PackBuilder) AddUint64(n uint64) *PackBuilder {
-	body := &Uint64Body{
+	body := &BodyUint64{
 		Value: n,
 	}
 	return inst.innerAdd(body)
 }
 
 func (inst *PackBuilder) AddInt8(n int8) *PackBuilder {
-	body := &Int8Body{
+	body := &BodyInt8{
 		Value: n,
 	}
 	return inst.innerAdd(body)

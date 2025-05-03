@@ -30,6 +30,8 @@ func (inst *autoRegistrar) register(factory comFactory) error {
 func (inst*autoRegistrar) addAll() error {
 
     
+    inst.register(&p3be6aaa1d9_t_TestClientUnit{})
+    inst.register(&p3be6aaa1d9_t_TestController{})
     inst.register(&p3be6aaa1d9_t_TestExampleController{})
 
 

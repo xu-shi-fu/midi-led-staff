@@ -1,14 +1,17 @@
-package controllers
+package t
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/starter-go/libgin"
+	"github.com/starter-go/units"
 	"github.com/xu-shi-fu/midi-led-staff/platforms/golang/mls-cp-stack/app/services"
 	"github.com/xu-shi-fu/midi-led-staff/platforms/golang/mls-cp-stack/app/web/vo"
+	"github.com/xu-shi-fu/midi-led-staff/platforms/golang/mls-cp-stack/mlscp"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -37,7 +40,8 @@ func (inst *TestController) Registration() *libgin.ControllerRegistration {
 }
 
 func (inst *TestController) route(rp libgin.RouterProxy) error {
-	rp = rp.For("tests")
+
+	rp = rp.For("/tests")
 
 	rp.Handle(http.MethodGet, "", inst.handleGet)
 	rp.Handle(http.MethodGet, ":id", inst.handleGet)
@@ -188,6 +192,70 @@ func (inst *TestRequest) doGetPing() error {
 	ctx := inst.context
 	ser := inst.controller.TestService
 	return ser.Ping(ctx)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// unit
+
+type TestClientUnit struct {
+
+	//starter:component
+	_as func(units.Units) //starter:as(".")
+
+	ConnectionService services.ConnectionService //starter:inject("#")
+
+}
+
+func (inst *TestClientUnit) _impl() units.Units {
+	return inst
+}
+
+func (inst *TestClientUnit) Units(list []*units.Registration) []*units.Registration {
+
+	r1 := &units.Registration{
+		Name:     "mls",
+		Enabled:  true,
+		Priority: 0,
+		Test:     inst.test,
+	}
+
+	list = append(list, r1)
+	return list
+}
+
+func (inst *TestClientUnit) test() error {
+
+	ctx := context.Background()
+	cfg := &vo.Connections{}
+	cfg.ServerHost = "localhost"
+	cfg.ServerPort = 6601
+	cfg.ClientPort = 6602
+
+	err := inst.ConnectionService.Connect(ctx, cfg)
+	if err != nil {
+		return err
+	}
+
+	client, err := inst.ConnectionService.GetCurrent(ctx)
+	if err != nil {
+		return err
+	}
+
+	rb := &mlscp.RequestBuilder{}
+	rb.Method(mlscp.MethodGet)
+	rb.Location("/tests/ping")
+
+	rb.Group(mlscp.GroupCommon)
+	// rb.AddFieldUint8(mlscp.FieldCommonMethod, 0)
+	// rb.AddFieldString(mlscp.FieldCommonLocation, mlscp.LocationPing   )
+
+	req := rb.Build()
+	err = client.Tx(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////

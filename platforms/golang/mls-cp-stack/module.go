@@ -1,4 +1,4 @@
-package main
+package mlscpstack
 
 import (
 	"embed"
@@ -12,25 +12,50 @@ const (
 	theModuleName    = "github.com/xu-shi-fu/midi-led-staff/x"
 	theModuleVersion = "0.0.0"
 	theModuleRev     = 0
+)
 
-	theModuleResPath = "src/main/resources"
+////////////////////////////////////////////////////////////////////////////////
+
+const (
+	theModuleMainResPath = "src/main/resources"
+	theModuleTestResPath = "src/test/resources"
 )
 
 //go:embed "src/main/resources"
-var theModuleResFS embed.FS
+var theModuleMainResFS embed.FS
 
-func Module() application.Module {
+//go:embed "src/test/resources"
+var theModuleTestResFS embed.FS
+
+////////////////////////////////////////////////////////////////////////////////
+
+func ModuleMainBuilder() *application.ModuleBuilder {
 
 	mb := &application.ModuleBuilder{}
 
-	mb.Name(theModuleName)
+	mb.Name(theModuleName + "#lib")
 	mb.Version(theModuleVersion)
 	mb.Revision(theModuleRev)
 
-	mb.EmbedResources(theModuleResFS, theModuleResPath)
+	mb.EmbedResources(theModuleMainResFS, theModuleMainResPath)
 	mb.Components(main4mlscp.ExportComponents)
 
 	mb.Depend(libgin.Module())
 
-	return mb.Create()
+	return mb
+}
+
+func ModuleTestBuilder() *application.ModuleBuilder {
+
+	mb := &application.ModuleBuilder{}
+
+	mb.Name(theModuleName + "#test")
+	mb.Version(theModuleVersion)
+	mb.Revision(theModuleRev)
+
+	mb.EmbedResources(theModuleTestResFS, theModuleTestResPath)
+
+	// mb.Depend(libgin.Module())
+
+	return mb
 }

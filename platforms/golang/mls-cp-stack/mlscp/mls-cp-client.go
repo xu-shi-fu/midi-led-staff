@@ -34,7 +34,7 @@ type clientRuntime struct {
 	shareTransactionContext *TransactionContext
 }
 
-func (inst *clientRuntime) _impl() Session {
+func (inst *clientRuntime) Impl() Session {
 	return inst
 }
 
@@ -121,6 +121,7 @@ func (inst *clientRuntime) reverseFilterList(src []RTXFilter) []RTXFilter {
 
 func (inst *clientRuntime) loadFilters() (*RTX, error) {
 
+	cc := inst.context.Parent
 	cfg := inst.context.Parent.Config
 	if cfg == nil {
 		return nil, fmt.Errorf("mls: config is nil")
@@ -142,6 +143,7 @@ func (inst *clientRuntime) loadFilters() (*RTX, error) {
 
 	for _, item := range src {
 		rxBuilder.Add(item)
+		cc.AddComponent(item)
 	}
 
 	for _, item := range src2 {
@@ -224,9 +226,9 @@ func (inst *clientRuntime) send(data []byte) error {
 		return fmt.Errorf("UDP connection is nil")
 	}
 
-	mtx := &ctx.Parent.Locker
-	mtx.Lock()
-	defer mtx.Unlock()
+	cc := ctx.Parent
+	cc.Lock()
+	defer cc.Unlock()
 
 	cb, err := conn.WriteToUDP(data, addr)
 	if err != nil {
@@ -272,7 +274,7 @@ type clientImpl struct {
 	closer  io.Closer // ref to runtime
 }
 
-func (inst *clientImpl) _impl() (Dispatcher, Client) {
+func (inst *clientImpl) Impl() (Dispatcher, Client) {
 	return inst, inst
 }
 
@@ -281,16 +283,45 @@ func (inst *clientImpl) Configuration() *Configuration {
 }
 
 func (inst *clientImpl) Tx(req *Request) error {
-	data := req.Data
+
 	session := inst.context.Current
 	if session == nil {
 		return fmt.Errorf("no session")
 	}
-	if data == nil {
-		return nil
+
+	tc, err := inst.makeTransactionContext(req)
+	if err != nil {
+		return err
 	}
+	req.Context = tc
+
 	tx := session.Filters.Tx
 	return tx.Tx(req)
+}
+
+func (inst *clientImpl) makeTransactionContext(req *Request) (*TransactionContext, error) {
+
+	tc := &TransactionContext{}
+	now := time.Now()
+	cc := inst.context
+	sc := inst.context.Current
+
+	// lock-unlock
+	cc.Lock()
+	defer cc.Unlock()
+
+	// Transaction-id
+	sc.TransactionIDCounter++
+	tid := sc.TransactionIDCounter
+
+	// set
+	tc.Parent = sc
+	tc.Request = req
+	tc.RequestAt = now
+	tc.Timeout = time.Second * 10
+	tc.TransactionID = tid
+
+	return tc, nil
 }
 
 func (inst *clientImpl) Close() error {
@@ -312,7 +343,9 @@ func (inst *clientImpl) start() error {
 		return err
 	}
 
+	// client-context
 	ctx1 := inst.context
+	// session-context
 	ctx2 := &SessionContext{
 		Remote: addr2,
 		Parent: ctx1,

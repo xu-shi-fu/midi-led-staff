@@ -8,6 +8,10 @@ type Response struct {
 	Data    []byte
 	Remote  *net.UDPAddr
 	Context *TransactionContext
+
+	Version Version
+	Status  int
+	Message string
 }
 
 type RxFilterChain interface {

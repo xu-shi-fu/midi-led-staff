@@ -26,7 +26,13 @@ func (inst *TestServiceImpl) Ping(ctx context.Context) error {
 		return err
 	}
 
-	req := &mlscp.Request{}
+	rb := &mlscp.RequestBuilder{}
+
+	rb = rb.Method(mlscp.MethodGet).Location(mlscp.LocationPing)
+
+	rb = rb.Group(mlscp.GroupCommon)
+	req := rb.Build()
+
 	err = client.Tx(req)
 	return err
 }

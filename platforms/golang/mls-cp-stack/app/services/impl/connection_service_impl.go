@@ -26,6 +26,7 @@ func (inst *ConnectionServiceImpl) GetFilters() []mlscp.RTXFilter {
 	list := make([]mlscp.RTXFilter, 0)
 
 	list = append(list, &rtxfilters.MonitorFilter{})
+	list = append(list, &rtxfilters.RespondingFilter{})
 	list = append(list, &rtxfilters.CodecFilter{})
 	list = append(list, &rtxfilters.DatagramFilter{})
 	list = append(list, &rtxfilters.EchoFilter{})

@@ -14,5 +14,13 @@ func (inst *CodecFilter) Rx(resp *mlscp.Response, chain mlscp.RxFilterChain) err
 }
 
 func (inst *CodecFilter) Tx(req *mlscp.Request, chain mlscp.TxFilterChain) error {
+
+	encoder := &mlscp.Encoder{}
+	data, err := encoder.EncodeRequest(req)
+	if err != nil {
+		return err
+	}
+	req.Data = data
+
 	return chain.Tx(req)
 }
