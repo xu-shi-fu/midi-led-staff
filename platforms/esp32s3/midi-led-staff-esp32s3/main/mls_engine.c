@@ -22,6 +22,13 @@
 //     *dst = rgb;
 // }
 
+mls_module *mls_engine_module_init(mls_engine_module *m1)
+{
+    mls_module *m2 = &m1->module;
+    m2->name = "mls_engine_module";
+    return m2;
+}
+
 mls_error mls_engine_init(mls_engine *engine)
 {
     ESP_LOGI(TAG, "run mls_engine_init");

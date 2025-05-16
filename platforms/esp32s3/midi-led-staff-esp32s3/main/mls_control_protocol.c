@@ -60,7 +60,7 @@ void mls_cp_pack_builder_reset(mls_cp_pack_builder *builder)
     if (builder)
     {
         mls_cp_block_array_reset(builder->blocks);
-        mls_buffer_reset(builder->buffer);
+        mls_buffer_writer_reset(builder->writer);
     }
 }
 
@@ -72,7 +72,7 @@ bool mls_cp_pack_builder_is_overflow(mls_cp_pack_builder *builder)
         {
             return true;
         }
-        if (mls_buffer_is_overflow(builder->buffer))
+        if (mls_buffer_writer_is_overflow(builder->writer))
         {
             return true;
         }

@@ -3,6 +3,7 @@
 #ifndef __app_h__
 #define __app_h__
 
+#include "mls_api.h"
 #include "mls_common.h"
 #include "mls_errors.h"
 #include "mls_buffer.h"
@@ -24,14 +25,13 @@ typedef struct mls_app_t
     // loopers:
     // engine,tusb_midi,udp_server,ws2812
 
-    // mls_buffer_holder udp_rx_buffer;
-    // mls_buffer_holder udp_tx_buffer;
+    mls_module_array modules;
 
-    mls_cp_udp_adapter udp_adapter;
-    mls_cp_server server;
-
-    mls_led led;
-    mls_engine engine;
+    mls_nvs_module nvs;
+    mls_cp_server_module server;
+    mls_cp_udp_module udp;
+    mls_led_module led;
+    mls_engine_module engine;
 
 } mls_app;
 

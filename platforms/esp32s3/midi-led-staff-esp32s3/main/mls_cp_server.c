@@ -2,6 +2,7 @@
 
 #include "mls_control_protocol.h"
 #include "mls_tasks.h"
+#include "mls_cp_context.h"
 
 mls_error mls_cp_main_handler_fn(mls_cp_context *context);
 

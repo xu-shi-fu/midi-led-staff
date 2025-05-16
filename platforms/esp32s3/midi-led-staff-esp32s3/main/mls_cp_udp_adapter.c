@@ -4,12 +4,20 @@
 #include "mls_control_protocol.h"
 #include "mls_buffer.h"
 
-mls_error mls_cp_udp_adapter_init(mls_cp_udp_adapter *ctx)
+mls_module *mls_cp_udp_module_init(mls_cp_udp_module *m1)
 {
-    memset(ctx, 0, sizeof(ctx[0]));
+    mls_module *m2 = &m1->module;
+    m2->name = "mls_cp_udp_module";
+    return m2;
+}
+
+mls_error mls_cp_udp_adapter_init(mls_cp_udp_adapter *adapter)
+{
+    // memset(ctx, 0, sizeof(ctx[0]));
+    mls_cp_udp_context *ctx = adapter->context;
 
     ctx->port = 2333;
-    ctx->rx_buffer.capacity = 1024;
+    // ctx->rx_buffer.capacity = 1024;
     // ctx->tx_buffer.capacity = 1024;
 
     // create socket
@@ -44,33 +52,37 @@ mls_error mls_cp_udp_adapter_send(struct mls_cp_tx_context_t *ctx)
 
 mls_error mls_cp_udp_adapter_loop(mls_cp_udp_adapter *adapter, bool infinity)
 {
+    mls_cp_udp_context *ctx = adapter->context;
 
     // rx buffer
-    uint8_t *rx_buffer_data = adapter->rx_buffer.buffer->data;
-    size_t rx_buffer_capacity = adapter->rx_buffer.buffer->capacity;
+    uint8_t *rx_buffer_data = ctx->rx_buffer.data;
+    size_t rx_buffer_capacity = ctx->rx_buffer.capacity;
     ESP_LOGI(TAG, "udp_server.rx_buffer.at   = %d", (int)rx_buffer_data);
     ESP_LOGI(TAG, "udp_server.rx_buffer.size = %d", rx_buffer_capacity);
 
     // socket
-    int sock_fd = adapter->socket_fd;
+    int sock_fd = ctx->socket_fd;
 
     // remote address
-    struct sockaddr_in remote_addr;
-    socklen_t remote_addr_len = sizeof(remote_addr);
+    struct sockaddr_in remote_sock_addr;
+    mls_cp_address remote_cp_addr;
+    socklen_t remote_addr_len = sizeof(remote_sock_addr);
 
     // context
     mls_cp_context context;
     memset(&context, 0, sizeof(context));
-    context.adapter = &adapter->base_adapter;
-    context.server = adapter->server;
+    context.adapter = mls_cp_udp_adapter_get_adapter(adapter);
+    context.server = ctx->server;
 
     do
     {
-        size_t rx_len = recvfrom(sock_fd, rx_buffer_data, rx_buffer_capacity, 0, (struct sockaddr *)&remote_addr, &remote_addr_len);
+        size_t rx_len = recvfrom(sock_fd, rx_buffer_data, rx_buffer_capacity, 0, (struct sockaddr *)&remote_sock_addr, &remote_addr_len);
+
+        convert_address_from_sock_to_cp(&remote_sock_addr, &remote_cp_addr);
 
         context.request.buffer.data = rx_buffer_data;
         context.request.buffer.length = rx_len;
-        context.request.remote = remote_addr;
+        context.request.remote = remote_cp_addr;
 
         mls_error err = mls_cp_server_handle(&context);
         if (err)

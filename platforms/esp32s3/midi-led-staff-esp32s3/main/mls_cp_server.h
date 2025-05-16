@@ -3,10 +3,12 @@
 #ifndef __control_protocol_server_h__
 #define __control_protocol_server_h__
 
+#include "mls_api.h"
 #include "mls_errors.h"
 #include "mls_buffer.h"
 #include "mls_tasks.h"
 #include "mls_control_protocol.h"
+#include "mls_cp_context.h"
 
 /**
  *
@@ -17,10 +19,6 @@
  * adapter
  */
 
-struct mls_cp_adapter_t;
-struct mls_cp_context_t;
-struct mls_cp_handler_t;
-struct mls_cp_server_t;
 struct mls_cp_handler_registration_t;
 
 /*******************************************************************************
@@ -29,17 +27,6 @@ struct mls_cp_handler_registration_t;
 
 typedef mls_error (*mls_cp_handler_func)(struct mls_cp_context_t *context);
 typedef mls_error (*mls_cp_dispatcher_func)(struct mls_cp_context_t *context, mls_buffer_slice *data);
-
-/*******************************************************************************
- *  adapter
- */
-
-typedef struct mls_cp_adapter_t
-{
-
-    struct mls_cp_dispatcher *dispatcher;
-
-} mls_cp_adapter;
 
 /*******************************************************************************
  *  dispatcher
@@ -73,30 +60,6 @@ typedef struct mls_cp_handler_registration_t
 } mls_cp_handler_registration;
 
 /*******************************************************************************
- *  request
- */
-
-typedef struct mls_cp_request_t
-{
-    struct sockaddr_in remote;
-    mls_buffer_slice buffer;
-    mls_cp_block_array *blocks;
-
-} mls_cp_request;
-
-/*******************************************************************************
- *  response
- */
-
-typedef struct mls_cp_response_t
-{
-    struct sockaddr_in remote;
-    mls_buffer_slice buffer;
-    mls_cp_block_array *blocks;
-
-} mls_cp_response;
-
-/*******************************************************************************
  *  share
  */
 
@@ -114,20 +77,6 @@ typedef struct mls_cp_share_t
 } mls_cp_share;
 
 mls_error mls_cp_share_init(mls_cp_share *share);
-
-/*******************************************************************************
- *  context
- */
-
-typedef struct mls_cp_context_t
-{
-    mls_cp_request request;
-    mls_cp_response response;
-
-    struct mls_cp_adapter_t *adapter;
-    struct mls_cp_server_t *server;
-
-} mls_cp_context;
 
 /*******************************************************************************
  *  server
@@ -148,6 +97,15 @@ mls_error mls_cp_server_register_handler(mls_cp_server *server, mls_cp_handler *
 mls_error mls_cp_server_register_handler_reg(mls_cp_server *server, mls_cp_handler_registration *hr);
 
 mls_error mls_cp_server_handle(mls_cp_context *context);
+
+/*******************************************************************************
+ *  server-module
+ */
+
+typedef struct mls_cp_server_module_t
+{
+
+} mls_cp_server_module;
 
 /*******************************************************************************
  *  EOF

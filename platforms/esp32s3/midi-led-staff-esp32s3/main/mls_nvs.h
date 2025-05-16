@@ -5,8 +5,15 @@
 
 #include "mls_common.h"
 #include "mls_errors.h"
+#include "mls_module.h"
 
-mls_error mls_nvs_init();
-mls_error mls_nvs_loop();
+typedef struct mls_nvs_module_t
+{
+
+    mls_module module;
+
+} mls_nvs_module;
+
+mls_module *mls_nvs_module_init(mls_nvs_module *m);
 
 #endif // __nvs_h__

@@ -5,97 +5,84 @@
 ////////////////////////////////////////////////////////////////////////////////
 // task group
 
-typedef struct
-{
+// typedef struct
+// {
 
-    mls_task midi;
-    mls_task udp_server;
-    mls_task engine;
-    mls_task led;
+//     mls_task midi;
+//     mls_task udp_server;
+//     mls_task engine;
+//     mls_task led;
 
-} mls_task_group;
+// } mls_task_group;
 
-static mls_task_group the_mls_task_group;
-
-////////////////////////////////////////////////////////////////////////////////
-// tasks
-
-mls_error mls_task_ble(mls_app *app)
-{
-    mls_ble_loop();
-    return NULL;
-}
-
-mls_error mls_task_led(mls_app *app)
-{
-    return mls_led_loop(&app->led);
-}
-
-mls_error mls_task_midi(mls_app *app)
-{
-    // mls_midi_loop();
-
-    return mls_errors_make(404, "no impl this task");
-}
-
-mls_error mls_task_engine(mls_app *app)
-{
-    return mls_engine_loop(&app->engine);
-}
-
-mls_error mls_task_cp_udp_adapter(mls_app *app)
-{
-    const bool infinity = true;
-    mls_cp_udp_adapter *adapter = &app->udp_adapter;
-    return mls_cp_udp_adapter_loop(adapter, infinity);
-}
+// static mls_task_group the_mls_task_group;
 
 ////////////////////////////////////////////////////////////////////////////////
+// tasks  ( deprecated )
+
+// use: modules
+
+// mls_error mls_task_ble(mls_app *app)
+// {
+//     mls_ble_loop();
+//     return NULL;
+// }
+
+// mls_error mls_task_led(mls_app *app)
+// {
+//     return mls_led_loop(&app->led);
+// }
+
+// mls_error mls_task_midi(mls_app *app)
+// {
+//     // mls_midi_loop();
+
+//     return mls_errors_make(404, "no impl this task");
+// }
+
+// mls_error mls_task_engine(mls_app *app)
+// {
+//     return mls_engine_loop(&app->engine);
+// }
+
+// mls_error mls_task_cp_udp_adapter(mls_app *app)
+// {
+//     const bool infinity = true;
+//     mls_cp_udp_adapter *adapter = &app->udp_adapter;
+//     return mls_cp_udp_adapter_loop(adapter, infinity);
+// }
+
+////////////////////////////////////////////////////////////////////////////////
+
+void mls_app_wire_modules(mls_app *app)
+{
+
+    // app->udp.context.server = &app->server;
+}
 
 mls_error mls_app_init(mls_app *app)
 {
-    mls_error err;
 
-    err = mls_nvs_init();
-    if (err)
+    // list modules
+    mls_module_array *modules = &app->modules;
+    mls_module_array_init(modules);
+    mls_module_array_create(modules, 5);
+
+    mls_module_array_add(modules, mls_nvs_module_init(&app->nvs));
+    mls_module_array_add(modules, mls_cp_udp_module_init(&app->udp));
+    mls_module_array_add(modules, mls_engine_module_init(&app->engine));
+    mls_module_array_add(modules, mls_led_module_init(&app->led));
+
+    if (mls_module_array_is_overflow(modules))
     {
-        return err;
-    }
-
-    mls_settings_init();
-    mls_ble_init();
-    mls_wifi_init();
-
-    // mls_midi_init();
-
-    err = mls_cp_server_init(&app->server);
-    if (err)
-    {
-        return err;
-    }
-
-    err = mls_cp_udp_adapter_init(&app->udp_adapter);
-    if (err)
-    {
-        return err;
-    }
-
-    err = mls_led_init(&app->led);
-    if (err)
-    {
-        return err;
-    }
-
-    err = mls_engine_init(&app->engine);
-    if (err)
-    {
-        return err;
+        return mls_errors_make(500, "mls_module_array_is_overflow");
     }
 
     // wire
-    app->udp_adapter.server = &app->server;
+    mls_app_wire_modules(app);
 
-    return NULL;
+    // invoke: fn(init)
+    return mls_module_array_invoke_each_init(modules);
 }
 
 mls_error mls_app_create(mls_app *app)
@@ -106,45 +93,12 @@ mls_error mls_app_create(mls_app *app)
 
 mls_error mls_app_start(mls_app *app)
 {
-    mls_task_group *tg = &the_mls_task_group;
-    mls_task *task;
 
-    memset(&the_mls_task_group, 0, sizeof(the_mls_task_group));
+    // memset(&the_mls_task_group, 0, sizeof(the_mls_task_group));
 
     // init all tasks
 
-    mls_tasks_init(&tg->led);
-    mls_tasks_init(&tg->midi);
-    mls_tasks_init(&tg->engine);
-    mls_tasks_init(&tg->udp_server);
-
-    // config
-
-    task = &tg->engine;
-    task->name = "engine";
-    task->fn = mls_task_engine;
-    task->app = app;
-
-    task = &tg->led;
-    task->name = "led";
-    task->fn = mls_task_led;
-    task->app = app;
-
-    task = &tg->midi;
-    task->name = "midi";
-    task->fn = mls_task_midi;
-    task->app = app;
-
-    task = &tg->udp_server;
-    task->name = "cp-udp-adapter";
-    task->fn = mls_task_cp_udp_adapter;
-    task->app = app;
-
     // start all
-    mls_tasks_start(&tg->midi);
-    mls_tasks_start(&tg->led);
-    mls_tasks_start(&tg->udp_server);
-    mls_tasks_start(&tg->engine);
 
     return NULL;
 }

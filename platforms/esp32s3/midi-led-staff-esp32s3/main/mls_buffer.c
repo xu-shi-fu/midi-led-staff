@@ -2,128 +2,163 @@
 #include <memory.h>
 
 ////////////////////////////////////////////////////////////////////////////////
+// mls_buffer_entity::
 
-mls_buffer *mls_buffer_create(size_t capacity)
+mls_buffer_entity *mls_buffer_entity_create(size_t capacity)
 {
-    size_t len = sizeof(mls_buffer) + capacity;
+    size_t len = sizeof(mls_buffer_entity) + capacity;
     void *p = malloc(len);
-    if (p == NULL)
+    mls_buffer_entity *head = NULL;
+    if (p)
     {
-        return NULL;
+        memset(p, 0, len);
+        head = p;
+        head->capacity = capacity;
     }
-    mls_buffer *head = p;
-    head->length = 0;
-    head->capacity = capacity;
     return head;
 }
 
-void mls_buffer_release(mls_buffer *buffer)
+void mls_buffer_entity_release(mls_buffer_entity *ent)
+{
+    if (ent)
+    {
+        free(ent);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// mls_buffer_x::
+
+void mls_buffer_init(mls_buffer_x *buffer)
+{
+    if (buffer)
+    {
+        memset(buffer, 0, sizeof(buffer[0]));
+    }
+}
+
+mls_error mls_buffer_create(mls_buffer_x *buffer)
 {
     if (buffer == NULL)
     {
-        return;
+        return mls_errors_make(500, "byte buffer is nil");
     }
-    free(buffer);
+    if (buffer->entity)
+    {
+        return NULL;
+    }
+
+    mls_buffer_entity *ent = mls_buffer_entity_create(buffer->capacity);
+    if (ent == NULL)
+    {
+        return mls_errors_make(500, "create a nil buffer entity");
+    }
+
+    buffer->size = 0;
+    buffer->entity = ent;
+    buffer->data = ent->data;
+    return NULL;
+}
+
+void mls_buffer_release(mls_buffer_x *buffer)
+{
+    if (buffer)
+    {
+        if (buffer->entity)
+        {
+            mls_buffer_entity_release(buffer->entity);
+            buffer->entity = NULL;
+            buffer->data = NULL;
+            buffer->size = 0;
+        }
+    }
+}
+
+bool mls_buffer_is_ready(mls_buffer_x *buffer)
+{
+    if (buffer)
+    {
+        if (buffer->entity)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// mls_buffer_holder::
 
-void mls_buffer_holder_init(mls_buffer_holder *holder, size_t capacity)
+void mls_buffer_holder_init(mls_buffer_holder *h, mls_buffer_x *buf)
 {
-    if (holder == NULL)
+    if (h)
     {
-        return;
-    }
-    memset(holder, 0, sizeof(holder[0]));
-    holder->capacity = capacity;
-}
-
-void mls_buffer_holder_create(mls_buffer_holder *holder)
-{
-    if (holder == NULL)
-    {
-        return;
-    }
-    if (holder->buffer)
-    {
-        return;
-    }
-    holder->buffer = mls_buffer_create(holder->capacity);
-}
-
-void mls_buffer_holder_release(mls_buffer_holder *holder)
-{
-    if (holder == NULL)
-    {
-        return;
-    }
-    if (holder->buffer)
-    {
-        mls_buffer_release(holder->buffer);
-        holder->buffer = NULL;
+        memset(h, 0, sizeof(h[0]));
+        h->buffer = buf;
     }
 }
 
-bool mls_buffer_holder_ready(mls_buffer_holder *h)
+mls_error mls_buffer_holder_create(mls_buffer_holder *h, size_t capacity)
 {
     if (h == NULL)
     {
-        return false;
+        return mls_errors_make(500, "mls_buffer_holder is nil");
     }
+
     if (h->buffer == NULL)
     {
-        return false;
+        return mls_errors_make(500, "mls_buffer_holder.buffer is nil");
     }
-    return true;
+
+    if (h->buffer->entity)
+    {
+        return NULL; // entity is existed
+    }
+
+    mls_error err = mls_buffer_create(h->buffer);
+    if (err)
+    {
+        return err;
+    }
+    if (h->buffer->entity == NULL)
+    {
+        return mls_errors_make(500, "make byte-buffer-entity result nil");
+    }
+
+    h->buffer->entity->owner = h;
+    return NULL;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-void mls_buffer_holder_auto_create(mls_buffer_holder_auto *a, mls_buffer_holder *holder)
+void mls_buffer_holder_release(mls_buffer_holder *h)
 {
-    if (a == NULL || holder == NULL)
+    if (h)
     {
-        return;
-    }
-    a->mine = NULL;
-    a->holder = NULL;
-    if (holder->buffer)
-    {
-        return;
-    }
-    mls_buffer_holder_create(holder);
-    a->mine = holder;
-    a->holder = holder;
-}
-
-void mls_buffer_holder_auto_release(mls_buffer_holder_auto *a)
-{
-    if (a == NULL)
-    {
-        return;
-    }
-    if (a->mine)
-    {
-        mls_buffer_holder_release(a->mine);
-        a->mine = NULL;
+        if (h->buffer)
+        {
+            if (h->buffer->entity)
+            {
+                if (h->buffer->entity->owner == h)
+                {
+                    mls_buffer_release(h->buffer);
+                }
+            }
+        }
     }
 }
 
-bool mls_buffer_holder_auto_ready(mls_buffer_holder_auto *a)
+bool mls_buffer_holder_is_ready(mls_buffer_holder *h)
 {
-    if (a == NULL)
+    if (h)
     {
-        return false;
+        if (h->buffer)
+        {
+            if (h->buffer->entity)
+            {
+                return true;
+            }
+        }
     }
-    if (a->holder == NULL)
-    {
-        return false;
-    }
-    if (a->holder->buffer == NULL)
-    {
-        return false;
-    }
-    return true;
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

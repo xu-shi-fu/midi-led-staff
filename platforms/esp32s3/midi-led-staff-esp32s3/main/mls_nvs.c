@@ -2,6 +2,13 @@
 
 #include "mls_nvs.h"
 
+mls_module *mls_nvs_module_init(mls_nvs_module *m1)
+{
+    mls_module *m2 = &m1->module;
+    m2->name = "mls_nvs_module";
+    return m2;
+}
+
 mls_error mls_nvs_init()
 {
     esp_err_t ret = nvs_flash_init();

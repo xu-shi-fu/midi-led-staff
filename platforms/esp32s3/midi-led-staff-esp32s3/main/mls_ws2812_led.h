@@ -6,6 +6,7 @@
 #include "mls_common.h"
 #include "led_strip_encoder.h"
 #include "mls_errors.h"
+#include "mls_module.h"
 
 #define MLS_LED_NUMBERS 128 // 灯带缓冲区的大小 (LED 的个数)
 
@@ -25,6 +26,16 @@ typedef struct
     uint8_t led_strip_pixels[MLS_LED_NUMBERS * 3];
 
 } mls_led;
+
+typedef struct mls_led_module_t
+{
+    mls_module module;
+
+} mls_led_module;
+
+////////////////////////////////////////////////////////////////////////////////
+
+mls_module *mls_led_module_init(mls_led_module *m);
 
 mls_error mls_led_init(mls_led *led);
 mls_error mls_led_loop(mls_led *led);

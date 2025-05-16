@@ -9,7 +9,7 @@
 typedef struct
 {
 
-    mls_error_t head;
+    mls_error_meta head;
 
     char message[99];
     char end;
@@ -17,6 +17,42 @@ typedef struct
 } mls_error_info;
 
 static mls_error_info the_error_buffer;
+
+////////////////////////////////////////////////////////////////////////////////
+// error holder
+
+void mls_error_holder_init(mls_error_holder *holder)
+{
+    if (holder)
+    {
+        memset(holder, 0, sizeof(holder[0]));
+    }
+}
+
+void mls_error_holder_reset(mls_error_holder *holder)
+{
+    if (holder)
+    {
+        holder->err = NULL;
+    }
+}
+
+void mls_error_holder_push(mls_error_holder *holder, mls_error err)
+{
+    if (holder && err)
+    {
+        holder->err = err;
+    }
+}
+
+bool mls_error_holder_has_error(mls_error_holder *holder)
+{
+    if (holder)
+    {
+        return holder->err ? 1 : 0;
+    }
+    return false;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // error functions

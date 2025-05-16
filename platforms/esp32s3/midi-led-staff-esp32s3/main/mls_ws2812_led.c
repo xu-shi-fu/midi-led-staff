@@ -8,6 +8,15 @@
 #define RMT_LED_STRIP_RESOLUTION_HZ 10000000 // 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
 #define EXAMPLE_CHASE_SPEED_MS 2             // 每个刷新周期中, delay 的时长, 单位是 ms
 
+////////////////////////////////////////////////////////////////////////////////
+// internal functions
+
+mls_error mls_led_module_on_init(mls_module *module);
+mls_error mls_led_module_on_create(mls_module *module);
+mls_error mls_led_module_on_start(mls_module *module);
+
+////////////////////////////////////////////////////////////////////////////////
+
 void mls_led_init_as_demo(mls_led *led)
 {
     uint8_t r, g, b;
@@ -27,6 +36,18 @@ void mls_led_init_as_demo(mls_led *led)
         }
         mls_led_set_color(led, index, r, g, b);
     }
+}
+
+mls_module *mls_led_module_init(mls_led_module *m1)
+{
+    mls_module *m2 = &m1->module;
+
+    m2->name = "led_module";
+    m2->on_init = mls_led_module_on_init;
+    m2->on_create = mls_led_module_on_create;
+    m2->on_start = mls_led_module_on_start;
+
+    return m2;
 }
 
 mls_error mls_led_init(mls_led *led)
@@ -147,4 +168,19 @@ ColorRGB mls_rgb(uint8_t r, uint8_t g, uint8_t b)
     rgb.g = g;
     rgb.b = b;
     return rgb;
+}
+
+mls_error mls_led_module_on_init(mls_module *module)
+{
+    return NULL;
+}
+
+mls_error mls_led_module_on_create(mls_module *module)
+{
+    return NULL;
+}
+
+mls_error mls_led_module_on_start(mls_module *module)
+{
+    return NULL;
 }
