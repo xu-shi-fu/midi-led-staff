@@ -6,6 +6,9 @@
 
 mls_error mls_cp_main_handler_fn(mls_cp_context *context);
 
+mls_error mls_cp_server_module_on_init(mls_module *m);
+mls_error mls_cp_server_module_on_loop(mls_module *m);
+
 /*******************************************************************************
  * mls_cp_server
  */
@@ -122,6 +125,25 @@ mls_error mls_cp_share_init(mls_cp_share *share)
     memset(share, 0, sizeof(share[0]));
 
     return NULL;
+}
+
+mls_error mls_cp_server_module_on_init(mls_module *m)
+{
+    return NULL;
+}
+
+mls_error mls_cp_server_module_on_loop(mls_module *m)
+{
+    return NULL;
+}
+
+mls_module *mls_cp_server_module_init(mls_cp_server_module *m1)
+{
+    mls_module *m2 = &m1->module;
+    m2->name = "mls_cp_server_module";
+    m2->on_init = mls_cp_server_module_on_init;
+    m2->on_run = mls_cp_server_module_on_loop;
+    return m2;
 }
 
 /*******************************************************************************

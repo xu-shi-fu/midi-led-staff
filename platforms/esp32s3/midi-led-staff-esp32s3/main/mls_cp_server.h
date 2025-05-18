@@ -7,6 +7,7 @@
 #include "mls_errors.h"
 #include "mls_buffer.h"
 #include "mls_tasks.h"
+#include "mls_module.h"
 #include "mls_control_protocol.h"
 #include "mls_cp_context.h"
 
@@ -105,7 +106,15 @@ mls_error mls_cp_server_handle(mls_cp_context *context);
 typedef struct mls_cp_server_module_t
 {
 
+    mls_module module;
+
 } mls_cp_server_module;
+
+/*******************************************************************************
+ *  api
+ */
+
+mls_module *mls_cp_server_module_init(mls_cp_server_module *m1);
 
 /*******************************************************************************
  *  EOF

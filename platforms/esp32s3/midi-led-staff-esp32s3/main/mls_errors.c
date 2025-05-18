@@ -2,6 +2,7 @@
 
 #include "mls_errors.h"
 #include "mls_common.h"
+#include "mls_tasks.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // buffer
@@ -77,16 +78,24 @@ mls_error mls_errors_make(int code, char *const msg)
     return &buffer->head;
 }
 
+void mls_errors_check_message(mls_error err)
+{
+    if (err)
+    {
+        if (err->message == NULL)
+        {
+            err->message = "[no_message]";
+        }
+    }
+}
+
 void mls_errors_log(mls_error err)
 {
     if (err)
     {
+        mls_errors_check_message(err);
         int code = err->code;
         const char *msg = err->message;
-        if (msg == NULL)
-        {
-            msg = "[no_message]";
-        }
         ESP_LOGE(TAG, "[error code:%d msg:%s]", code, msg);
     }
 }
@@ -95,12 +104,25 @@ void mls_errors_log_warn(mls_error err)
 {
     if (err)
     {
+        mls_errors_check_message(err);
         int code = err->code;
         const char *msg = err->message;
-        if (msg == NULL)
-        {
-            msg = "[no_message]";
-        }
         ESP_LOGW(TAG, "[error code:%d msg:%s]", code, msg);
+    }
+}
+
+void mls_panic(mls_error err)
+{
+    if (err)
+    {
+        mls_errors_check_message(err);
+        int code = err->code;
+        const char *msg = err->message;
+        ESP_LOGE(TAG, "[panic code:%d msg:%s]", code, msg);
+
+        for (;;)
+        {
+            mls_tasks_sleep(500);
+        }
     }
 }

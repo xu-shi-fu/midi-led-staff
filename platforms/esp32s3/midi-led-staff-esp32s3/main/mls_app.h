@@ -16,6 +16,7 @@
 #include "mls_settings.h"
 #include "mls_nvs.h"
 #include "mls_cp_server.h"
+#include "mls_tusb_midi.h"
 
 typedef struct mls_app_t
 {
@@ -27,17 +28,25 @@ typedef struct mls_app_t
 
     mls_module_array modules;
 
+    mls_ble_module ble;
+    mls_engine_module engine;
+    mls_led_module led;
     mls_nvs_module nvs;
     mls_cp_server_module server;
+    mls_settings_module settings;
+    mls_tusb_midi_module tusb_midi;
     mls_cp_udp_module udp;
-    mls_led_module led;
-    mls_engine_module engine;
+    mls_wifi_module wifi;
 
 } mls_app;
 
 mls_error mls_app_init(mls_app *app);
 mls_error mls_app_create(mls_app *app);
+mls_error mls_app_destroy(mls_app *app);
 mls_error mls_app_start(mls_app *app);
+mls_error mls_app_stop(mls_app *app);
+mls_error mls_app_pause(mls_app *app);
+mls_error mls_app_resume(mls_app *app);
 mls_error mls_app_loop(mls_app *app);
 
 #endif // __app_h__

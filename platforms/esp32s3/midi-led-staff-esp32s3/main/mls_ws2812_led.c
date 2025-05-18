@@ -42,7 +42,7 @@ mls_module *mls_led_module_init(mls_led_module *m1)
 {
     mls_module *m2 = &m1->module;
 
-    m2->name = "led_module";
+    m2->name = "mls_led_module";
     m2->on_init = mls_led_module_on_init;
     m2->on_create = mls_led_module_on_create;
     m2->on_start = mls_led_module_on_start;
@@ -172,15 +172,18 @@ ColorRGB mls_rgb(uint8_t r, uint8_t g, uint8_t b)
 
 mls_error mls_led_module_on_init(mls_module *module)
 {
+    // ESP_LOGI(TAG, "mls_led_module::on_init");
     return NULL;
 }
 
 mls_error mls_led_module_on_create(mls_module *module)
 {
+    // ESP_LOGI(TAG, "mls_led_module::on_create");
     return NULL;
 }
 
 mls_error mls_led_module_on_start(mls_module *module)
 {
+    // ESP_LOGI(TAG, "mls_led_module::on_start");
     return NULL;
 }

@@ -1,6 +1,93 @@
 
 #include "mls_module.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// internal functions
+
+mls_error mls_module_invoke_lifecycle_fn(mls_module *module, mls_lifecycle_phase phase);
+
+mls_error mls_module_invoke_lifecycle_fn(mls_module *module, mls_lifecycle_phase phase)
+{
+    mls_module_life_func fn;
+    const char *module_name;
+    const char *phase_name;
+
+    switch (phase)
+    {
+    case MLS_LIFECYCLE_PHASE_INIT:
+        fn = module->on_init;
+        phase_name = "init";
+        break;
+    case MLS_LIFECYCLE_PHASE_CREATE:
+        fn = module->on_create;
+        phase_name = "create";
+        break;
+    case MLS_LIFECYCLE_PHASE_START:
+        fn = module->on_start;
+        phase_name = "start";
+        break;
+    case MLS_LIFECYCLE_PHASE_RESUME:
+        fn = module->on_resume;
+        phase_name = "resume";
+        break;
+    case MLS_LIFECYCLE_PHASE_RUN:
+        fn = module->on_run;
+        phase_name = "run";
+        break;
+    case MLS_LIFECYCLE_PHASE_PAUSE:
+        fn = module->on_pause;
+        phase_name = "pause";
+        break;
+    case MLS_LIFECYCLE_PHASE_STOP:
+        fn = module->on_stop;
+        phase_name = "stop";
+        break;
+    case MLS_LIFECYCLE_PHASE_DESTROY:
+        fn = module->on_destroy;
+        phase_name = "destroy";
+        break;
+    default:
+        fn = NULL;
+        break;
+    }
+
+    if (fn)
+    {
+        module_name = module->name;
+        ESP_LOGI(TAG, "mls-module: on_%s@%s", phase_name, module_name);
+        return fn(module);
+    }
+    return NULL;
+}
+
+mls_error mls_module_array_invoke_lifecycle_fn(mls_module_array *array, mls_lifecycle_phase phase)
+{
+
+    mls_error err;
+    mls_module *item;
+    mls_module_array_iterator iter;
+    mls_module_array_iterator_init(&iter, array);
+
+    for (;;)
+    {
+        if (!mls_module_array_iterator_has_more(&iter))
+        {
+            break;
+        }
+        item = mls_module_array_iterator_next(&iter);
+        err = mls_module_invoke_lifecycle_fn(item, phase);
+        if (err)
+        {
+            return err;
+        }
+    }
+
+    return NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// mls_module_array::
+
 void mls_module_array_init(mls_module_array *array)
 {
     if (array)
@@ -88,22 +175,39 @@ void mls_module_array_add(mls_module_array *array, mls_module *item)
     }
 }
 
-mls_error mls_module_array_invoke_each_init(mls_module_array *array)
+////////////////////////////////////////////////////////////////////////////////
+// mls_module_array_iterator::
+
+void mls_module_array_iterator_init(mls_module_array_iterator *iter, mls_module_array *array)
 {
-    return mls_errors_make(500, "no impl");
+    if (iter == NULL || array == NULL)
+    {
+        return;
+    }
+    iter->modules = array->modules;
+    iter->i = 0;
+    iter->count = array->count;
 }
 
-mls_error mls_module_array_invoke_each_create(mls_module_array *array)
+bool mls_module_array_iterator_has_more(mls_module_array_iterator *iter)
 {
-    return mls_errors_make(500, "no impl");
+    if (iter)
+    {
+        return (iter->i < iter->count);
+    }
+    return false;
 }
 
-mls_error mls_module_array_invoke_each_start(mls_module_array *array)
+mls_module *mls_module_array_iterator_next(mls_module_array_iterator *iter)
 {
-    return mls_errors_make(500, "no impl");
+    if (iter)
+    {
+        uint i = iter->i;
+        iter->i++;
+        return iter->modules[i].module;
+    }
+    return NULL;
 }
 
-mls_error mls_module_array_invoke_each_run(mls_module_array *array)
-{
-    return mls_errors_make(500, "no impl");
-}
+////////////////////////////////////////////////////////////////////////////////
+// EOF

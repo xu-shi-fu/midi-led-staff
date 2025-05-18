@@ -32,4 +32,6 @@ bool mls_error_holder_has_error(mls_error_holder *holder);
 void mls_errors_log(mls_error err);
 void mls_errors_log_warn(mls_error err);
 
+void mls_panic(mls_error err);
+
 #endif // __errors_h__

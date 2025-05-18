@@ -6,6 +6,10 @@
 #include "mls_ws2812_led.h"
 // #include "mls_tusb_midi.h"
 
+mls_error mls_engine_module_on_init(mls_module *m);
+mls_error mls_engine_module_on_create(mls_module *m);
+mls_error mls_engine_module_on_start(mls_module *m);
+
 // #define rgb_map_count 12
 // ColorRGB rgb_map[rgb_map_count];
 
@@ -26,6 +30,9 @@ mls_module *mls_engine_module_init(mls_engine_module *m1)
 {
     mls_module *m2 = &m1->module;
     m2->name = "mls_engine_module";
+    m2->on_init = mls_engine_module_on_init;
+    m2->on_create = mls_engine_module_on_create;
+    m2->on_start = mls_engine_module_on_start;
     return m2;
 }
 
@@ -81,5 +88,23 @@ mls_error mls_engine_loop(mls_engine *engine)
     //     vTaskDelay(1);
     // }
 
+    return NULL;
+}
+
+mls_error mls_engine_module_on_init(mls_module *m)
+{
+    // ESP_LOGI(TAG, "mls_engine_module::on_init");
+    return NULL;
+}
+
+mls_error mls_engine_module_on_create(mls_module *m)
+{
+    // ESP_LOGI(TAG, "mls_engine_module::on_create");
+    return NULL;
+}
+
+mls_error mls_engine_module_on_start(mls_module *m)
+{
+    // ESP_LOGI(TAG, "mls_engine_module::on_start");
     return NULL;
 }

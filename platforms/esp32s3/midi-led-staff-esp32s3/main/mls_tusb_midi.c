@@ -15,6 +15,9 @@
 void mls_midi_handle_event_rx(uint8_t *buffer, uint cb);
 bool mls_midi_decode_event(uint8_t *buffer, uint cb, MidiKeyState *ret);
 
+mls_error mls_midi_module_on_init(mls_module *m);
+mls_error mls_midi_module_on_loop(mls_module *m);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 /** Helper defines **/
@@ -183,7 +186,7 @@ void mls_tusb_midi_init()
     tinyusb_config_t const tusb_cfg = {
         .device_descriptor = NULL, // If device_descriptor is NULL, tinyusb_driver_install() will use Kconfig
         .string_descriptor = s_str_desc,
-        .string_descriptor_count = sizeof(s_str_desc) / sizeof(s_str_desc[0]),
+        // .string_descriptor_count = sizeof(s_str_desc) / sizeof(s_str_desc[0]),
         .external_phy = false,
 #if (TUD_OPT_HIGH_SPEED)
         .fs_configuration_descriptor = s_midi_cfg_desc, // HID configuration descriptor for full-speed and high-speed are the same
@@ -283,21 +286,32 @@ void mls_tusb_midi_run_loop()
 ////////////////////////////////////////////////////////////////////////////////
 // api
 
-void mls_midi_init()
+mls_error mls_midi_module_on_init(mls_module *m)
 {
-    ESP_LOGI(TAG, "run mls_midi_init");
+    // ESP_LOGI(TAG, "run mls_midi_init"); 
     mls_midi_init_key_state();
     if (mls_ENABLE_TUSB_MIDI)
     {
         mls_tusb_midi_init();
     }
+    return NULL;
 }
 
-void mls_midi_loop()
+mls_error mls_midi_module_on_loop(mls_module *m)
 {
-    ESP_LOGI(TAG, "run mls_midi_loop");
+    // ESP_LOGI(TAG, "run mls_midi_loop");
     if (mls_ENABLE_TUSB_MIDI)
     {
         mls_tusb_midi_run_loop();
     }
+    return NULL;
+}
+
+mls_module *mls_tusb_midi_module_init(mls_tusb_midi_module *m1)
+{
+    mls_module *m2 = &m1->module;
+    m2->name = "mls_tusb_midi_module";
+    m2->on_init = mls_midi_module_on_init;
+    m2->on_run = mls_midi_module_on_loop;
+    return m2;
 }

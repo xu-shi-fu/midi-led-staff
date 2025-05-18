@@ -4,10 +4,30 @@
 #include "mls_control_protocol.h"
 #include "mls_buffer.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// internal functions
+
+mls_error mls_cp_udp_module_on_init(mls_module *m);
+mls_error mls_cp_udp_module_on_start(mls_module *m);
+
+mls_error mls_cp_udp_module_on_init(mls_module *m)
+{
+    return NULL;
+}
+
+mls_error mls_cp_udp_module_on_start(mls_module *m)
+{
+    return NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 mls_module *mls_cp_udp_module_init(mls_cp_udp_module *m1)
 {
     mls_module *m2 = &m1->module;
     m2->name = "mls_cp_udp_module";
+    m2->on_init = mls_cp_udp_module_on_init;
+    m2->on_start = mls_cp_udp_module_on_start;
     return m2;
 }
 

@@ -13,14 +13,24 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// internal functions
+
+mls_error mls_wifi_init(mls_module *m);
+mls_error mls_wifi_create(mls_module *m);
+mls_error mls_wifi_start(mls_module *m);
+mls_error mls_wifi_loop(mls_module *m);
+
+////////////////////////////////////////////////////////////////////////////////
+
 /* The examples use WiFi configuration that you can set via project configuration menu
 
    If you'd rather not, just change the below entries to strings with
    the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-#define EXAMPLE_ESP_WIFI_SSID "qcy-no3-djaf" // CONFIG_ESP_WIFI_SSID
+#define EXAMPLE_ESP_WIFI_SSID "qcy-no3-djaf"         // CONFIG_ESP_WIFI_SSID
 #define EXAMPLE_ESP_WIFI_PASS "01189998819991197253" // CONFIG_ESP_WIFI_PASSWORD
-#define EXAMPLE_ESP_MAXIMUM_RETRY 10 //  CONFIG_ESP_MAXIMUM_RETRY
+#define EXAMPLE_ESP_MAXIMUM_RETRY 10                 //  CONFIG_ESP_MAXIMUM_RETRY
 
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA2_PSK
 #define ESP_WIFI_SAE_MODE WPA3_SAE_PWE_UNSPECIFIED
@@ -98,7 +108,13 @@ static void mls_wifi_event_handler(void *arg, esp_event_base_t event_base,
     }
 }
 
-void mls_wifi_init()
+mls_error mls_wifi_init(mls_module *m)
+{
+
+    return NULL;
+}
+
+mls_error mls_wifi_start(mls_module *m)
 {
 
     s_wifi_event_group = xEventGroupCreate();
@@ -168,8 +184,21 @@ void mls_wifi_init()
     {
         ESP_LOGE(TAG, "UNEXPECTED EVENT");
     }
+
+    return NULL;
 }
 
-void mls_wifi_loop()
+mls_error mls_wifi_loop(mls_module *m)
 {
+    return NULL;
+}
+
+mls_module *mls_wifi_module_init(mls_wifi_module *m1)
+{
+    mls_module *m2 = &m1->module;
+    m2->name = "mls_wifi_module";
+    m2->on_init = mls_wifi_init;
+    m2->on_start = mls_wifi_start;
+    m2->on_run = mls_wifi_loop;
+    return m2;
 }

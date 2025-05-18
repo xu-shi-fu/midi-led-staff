@@ -49,6 +49,13 @@ mls_error app_main_inner(void)
         return err;
     }
 
+    // resume
+    err = mls_app_resume(app);
+    if (err)
+    {
+        return err;
+    }
+
     // run_loop
     return mls_app_loop(app);
 }

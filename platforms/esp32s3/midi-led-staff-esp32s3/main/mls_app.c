@@ -1,58 +1,10 @@
 #include "mls_app.h"
 
 #include "mls_tasks.h"
+#include "mls_module.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// task group
-
-// typedef struct
-// {
-
-//     mls_task midi;
-//     mls_task udp_server;
-//     mls_task engine;
-//     mls_task led;
-
-// } mls_task_group;
-
-// static mls_task_group the_mls_task_group;
-
-////////////////////////////////////////////////////////////////////////////////
-// tasks  ( deprecated )
-
-// use: modules
-
-// mls_error mls_task_ble(mls_app *app)
-// {
-//     mls_ble_loop();
-//     return NULL;
-// }
-
-// mls_error mls_task_led(mls_app *app)
-// {
-//     return mls_led_loop(&app->led);
-// }
-
-// mls_error mls_task_midi(mls_app *app)
-// {
-//     // mls_midi_loop();
-
-//     return mls_errors_make(404, "no impl this task");
-// }
-
-// mls_error mls_task_engine(mls_app *app)
-// {
-//     return mls_engine_loop(&app->engine);
-// }
-
-// mls_error mls_task_cp_udp_adapter(mls_app *app)
-// {
-//     const bool infinity = true;
-//     mls_cp_udp_adapter *adapter = &app->udp_adapter;
-//     return mls_cp_udp_adapter_loop(adapter, infinity);
-// }
-
-////////////////////////////////////////////////////////////////////////////////
+// internal func
 
 void mls_app_wire_modules(mls_app *app)
 {
@@ -60,52 +12,96 @@ void mls_app_wire_modules(mls_app *app)
     // app->udp.context.server = &app->server;
 }
 
-mls_error mls_app_init(mls_app *app)
+mls_error mls_app_enumerate_modules(mls_app *app)
 {
 
     // list modules
     mls_module_array *modules = &app->modules;
     mls_module_array_init(modules);
-    mls_module_array_create(modules, 5);
+    mls_module_array_create(modules, 10);
 
+    // 这里的顺序决定了启动顺序
     mls_module_array_add(modules, mls_nvs_module_init(&app->nvs));
-    mls_module_array_add(modules, mls_cp_udp_module_init(&app->udp));
-    mls_module_array_add(modules, mls_engine_module_init(&app->engine));
+    mls_module_array_add(modules, mls_settings_module_init(&app->settings));
     mls_module_array_add(modules, mls_led_module_init(&app->led));
+    mls_module_array_add(modules, mls_tusb_midi_module_init(&app->tusb_midi));
+    mls_module_array_add(modules, mls_ble_module_init(&app->ble));
+    mls_module_array_add(modules, mls_wifi_module_init(&app->wifi));
+    mls_module_array_add(modules, mls_cp_udp_module_init(&app->udp));
+    mls_module_array_add(modules, mls_cp_server_module_init(&app->server));
+    mls_module_array_add(modules, mls_engine_module_init(&app->engine));
 
     if (mls_module_array_is_overflow(modules))
     {
         return mls_errors_make(500, "mls_module_array_is_overflow");
     }
 
-    // wire
+    return NULL;
+}
+
+mls_error mls_app_init_pre(mls_app *app)
+{
+    memset(app, 0, sizeof(app[0]));
+
+    mls_error err = mls_app_enumerate_modules(app);
+    if (err)
+    {
+        return err;
+    }
+
     mls_app_wire_modules(app);
 
-    // invoke: fn(init)
-    return mls_module_array_invoke_each_init(modules);
+    return NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// app::lifecycle
+
+mls_error mls_app_init(mls_app *app)
+{
+    mls_error err = mls_app_init_pre(app);
+    if (err)
+    {
+        mls_panic(err);
+    }
+
+    return mls_module_array_invoke_lifecycle_fn(&app->modules, MLS_LIFECYCLE_PHASE_INIT);
 }
 
 mls_error mls_app_create(mls_app *app)
 {
-
-    return NULL;
+    return mls_module_array_invoke_lifecycle_fn(&app->modules, MLS_LIFECYCLE_PHASE_CREATE);
 }
 
 mls_error mls_app_start(mls_app *app)
 {
+    return mls_module_array_invoke_lifecycle_fn(&app->modules, MLS_LIFECYCLE_PHASE_START);
+}
 
-    // memset(&the_mls_task_group, 0, sizeof(the_mls_task_group));
-
-    // init all tasks
-
-    // start all
-
-    return NULL;
+mls_error mls_app_resume(mls_app *app)
+{
+    return mls_module_array_invoke_lifecycle_fn(&app->modules, MLS_LIFECYCLE_PHASE_RESUME);
 }
 
 mls_error mls_app_loop(mls_app *app)
 {
-    // main loop
-
-    return NULL;
+    return mls_module_array_invoke_lifecycle_fn(&app->modules, MLS_LIFECYCLE_PHASE_RUN);
 }
+
+mls_error mls_app_pause(mls_app *app)
+{
+    return mls_module_array_invoke_lifecycle_fn(&app->modules, MLS_LIFECYCLE_PHASE_PAUSE);
+}
+
+mls_error mls_app_stop(mls_app *app)
+{
+    return mls_module_array_invoke_lifecycle_fn(&app->modules, MLS_LIFECYCLE_PHASE_STOP);
+}
+
+mls_error mls_app_destroy(mls_app *app)
+{
+    return mls_module_array_invoke_lifecycle_fn(&app->modules, MLS_LIFECYCLE_PHASE_DESTROY);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// EOF

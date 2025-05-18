@@ -5,6 +5,7 @@
 
 #include "mls_common.h"
 #include "mls_errors.h"
+#include "mls_module.h"
 
 typedef struct
 {
@@ -38,8 +39,18 @@ typedef struct
 
 } SettingsAll;
 
-void mls_settings_init();
-void mls_settings_loop();
+typedef struct mls_settings_module_t
+{
+    mls_module module;
+
+} mls_settings_module;
+
+////////////////////////////////////////////////////////////////////////////////
+
+mls_module *mls_settings_module_init(mls_settings_module *m1);
+
+// void mls_settings_init();
+// void mls_settings_loop();
 
 SettingsAll *mls_settings_get_all();
 
