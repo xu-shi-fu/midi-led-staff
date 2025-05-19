@@ -1,4 +1,4 @@
-// mls_cp_adapter.h
+// mls_cp_address.h
 
 #ifndef __mls_cp_address_h__
 #define __mls_cp_address_h__
@@ -12,7 +12,7 @@
 typedef struct mls_cp_address_t
 {
 
-    char addr[8];
+    char addr[16];
 
 } mls_cp_address;
 

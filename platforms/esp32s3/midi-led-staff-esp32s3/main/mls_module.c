@@ -1,5 +1,6 @@
 
 #include "mls_module.h"
+#include "mls_common_esp.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // internal functions
@@ -11,6 +12,15 @@ mls_error mls_module_invoke_lifecycle_fn(mls_module *module, mls_lifecycle_phase
     mls_module_life_func fn;
     const char *module_name;
     const char *phase_name;
+
+    if (module == NULL)
+    {
+        return NULL;
+    }
+    if (!module->enabled)
+    {
+        return NULL;
+    }
 
     switch (phase)
     {

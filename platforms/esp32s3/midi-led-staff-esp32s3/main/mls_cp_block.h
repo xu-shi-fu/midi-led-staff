@@ -4,7 +4,7 @@
 #define __mls_cp_block_h__
 
 #include "mls_api.h"
-#include "mls_common.h"
+#include "mls_common_std.h"
 #include "mls_buffer.h"
 #include "mls_errors.h"
 #include "mls_cp_base.h"
@@ -57,6 +57,13 @@ typedef struct mls_cp_block_array_entity_t
 
 } mls_cp_block_array_entity;
 
+// mls_cp_block_array 是一个表示 cp_block 数组的结构,
+// 这个结构包含以下直接的成员:
+// - count: 数组中包含的 block 个数;
+// - capacity: 数组的容量;
+// - overflow: 是否发生了溢出;
+// - entity: 提供数组的实体结构;
+// - blocks: 指向数组的开头;
 typedef struct mls_cp_block_array_t
 {
 

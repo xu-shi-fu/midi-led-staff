@@ -3,7 +3,7 @@
 #ifndef __errors_h__
 #define __errors_h__
 
-#include "mls_common.h"
+#include "mls_common_mls.h"
 
 typedef struct mls_error_t
 {

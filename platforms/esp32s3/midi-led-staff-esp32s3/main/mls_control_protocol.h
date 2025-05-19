@@ -3,7 +3,7 @@
 #ifndef __control_protocol_h__
 #define __control_protocol_h__
 
-#include "mls_common.h"
+#include "mls_common_mls.h"
 #include "mls_errors.h"
 #include "mls_tasks.h"
 #include "mls_buffer.h"

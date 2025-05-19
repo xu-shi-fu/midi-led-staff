@@ -8,7 +8,6 @@
 #include "mls_errors.h"
 #include "mls_control_protocol.h"
 #include "mls_cp_server.h"
-#include "mls_cp_adapter.h"
 
 typedef struct mls_cp_ble_context_t
 {

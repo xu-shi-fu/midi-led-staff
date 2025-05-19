@@ -107,6 +107,7 @@ typedef struct mls_cp_server_module_t
 {
 
     mls_module module;
+    mls_cp_server server;
 
 } mls_cp_server_module;
 

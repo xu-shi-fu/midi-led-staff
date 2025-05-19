@@ -4,7 +4,7 @@
 #define __mls_module_h__
 
 #include "mls_api.h"
-#include "mls_common.h"
+#include "mls_common_mls.h"
 #include "mls_errors.h"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -36,9 +36,13 @@ typedef enum mls_lifecycle_phase_t
 typedef struct mls_module_t
 {
 
-    char *name;
+    const char *name;
 
     struct mls_app_t *app;
+
+    void *inner; // 指向模块的内部结构, 具体类型由各个模块决定
+
+    bool enabled; // 启用|禁用此模块
 
     mls_module_life_func on_init;
     mls_module_life_func on_create;

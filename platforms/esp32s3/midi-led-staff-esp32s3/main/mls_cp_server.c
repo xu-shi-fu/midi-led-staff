@@ -105,8 +105,8 @@ mls_error mls_cp_main_handler_fn(mls_cp_context *context)
     parser.callback = NULL;
     parser.params = NULL;
 
-    uint8_t *req_data = context->request.buffer.data;
-    size_t req_len = context->request.buffer.length;
+    uint8_t *req_data = context->request->buffer.data;
+    size_t req_len = context->request->buffer.length;
     err = mls_cp_pack_parser_parse(&parser, req_data, req_len);
     if (err)
     {

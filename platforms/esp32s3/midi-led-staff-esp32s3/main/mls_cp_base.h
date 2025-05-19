@@ -4,7 +4,7 @@
 #define __mls_cp_base_h__
 
 #include "mls_api.h"
-#include "mls_common.h"
+#include "mls_common_mls.h"
 #include "mls_buffer.h"
 #include "mls_errors.h"
 
