@@ -149,7 +149,7 @@ void mls_module_array_release(mls_module_array *array)
     }
 }
 
-bool mls_module_array_is_overflow(mls_module_array *array)
+mls_bool mls_module_array_is_overflow(mls_module_array *array)
 {
     if (array == NULL)
     {
@@ -199,7 +199,7 @@ void mls_module_array_iterator_init(mls_module_array_iterator *iter, mls_module_
     iter->count = array->count;
 }
 
-bool mls_module_array_iterator_has_more(mls_module_array_iterator *iter)
+mls_bool mls_module_array_iterator_has_more(mls_module_array_iterator *iter)
 {
     if (iter)
     {

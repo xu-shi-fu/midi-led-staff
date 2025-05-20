@@ -6,7 +6,7 @@
 #include "mls_common_mls.h"
 #include "mls_errors.h"
 
-struct mls_buffer_x_t;
+struct mls_buffer_t;
 struct mls_buffer_entity_t;
 struct mls_buffer_holder_t;
 struct mls_buffer_reader_t;
@@ -25,7 +25,7 @@ typedef struct mls_buffer_entity_t
 } mls_buffer_entity;
 
 // mls_buffer 表示缓冲区
-typedef struct mls_buffer_x_t
+typedef struct mls_buffer_t
 {
     size_t capacity;
     size_t size;
@@ -33,12 +33,12 @@ typedef struct mls_buffer_x_t
     uint8_t *data;
     mls_buffer_entity *entity;
 
-} mls_buffer_x; // 暂时命名为"mls_buffer_x",
+} mls_buffer;
 
 // mls_buffer_holder 结构用于管理缓冲区的分配/释放
 typedef struct mls_buffer_holder_t
 {
-    mls_buffer_x *buffer;
+    mls_buffer *buffer;
 
 } mls_buffer_holder;
 
@@ -50,7 +50,7 @@ typedef struct mls_buffer_holder_t
 typedef struct mls_buffer_slice_t
 {
 
-    mls_buffer_x *buffer;
+    mls_buffer *buffer;
     uint8_t *data;
     size_t length;
 
@@ -73,7 +73,7 @@ typedef struct mls_buffer_writer_t
     mls_buffer_slice slice;
 
     uint8_t *ptr;
-    bool overflow;
+    mls_bool overflow;
     mls_error_holder err_holder;
 
 } mls_buffer_writer;
@@ -87,38 +87,38 @@ void mls_buffer_entity_release(mls_buffer_entity *entity);
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_(x)
 
-void mls_buffer_init(mls_buffer_x *buffer);
-mls_error mls_buffer_create(mls_buffer_x *buffer);
-void mls_buffer_release(mls_buffer_x *buffer);
-bool mls_buffer_is_ready(mls_buffer_x *buffer);
+void mls_buffer_init(mls_buffer *buffer);
+mls_error mls_buffer_create(mls_buffer *buffer);
+void mls_buffer_release(mls_buffer *buffer);
+mls_bool mls_buffer_is_ready(mls_buffer *buffer);
 
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_holder
 
-void mls_buffer_holder_init(mls_buffer_holder *h, mls_buffer_x *buf);      // 第1步:初始化
+void mls_buffer_holder_init(mls_buffer_holder *h, mls_buffer *buf);        // 第1步:初始化
 mls_error mls_buffer_holder_create(mls_buffer_holder *h, size_t capacity); // 第2步:创建
 void mls_buffer_holder_release(mls_buffer_holder *h);                      // 第3步:释放
-bool mls_buffer_holder_is_ready(mls_buffer_holder *h);
+mls_bool mls_buffer_holder_is_ready(mls_buffer_holder *h);
 
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_slice
 
-void mls_buffer_slice_init(mls_buffer_slice *slice, mls_buffer_x *buffer);
+void mls_buffer_slice_init(mls_buffer_slice *slice, mls_buffer *buffer);
 void mls_buffer_slice_reset(mls_buffer_slice *slice);
 
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_reader
 
-void mls_buffer_reader_init(mls_buffer_reader *reader, mls_buffer_x *buffer);
+void mls_buffer_reader_init(mls_buffer_reader *reader, mls_buffer *buffer);
 size_t mls_buffer_reader_read(mls_buffer_reader *reader, uint8_t *dst, size_t len);
 
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_writer
 
-void mls_buffer_writer_init(mls_buffer_writer *writer, mls_buffer_x *buffer);
+void mls_buffer_writer_init(mls_buffer_writer *writer, mls_buffer *buffer);
 size_t mls_buffer_writer_write(mls_buffer_writer *writer, uint8_t *data, size_t len);
 void mls_buffer_writer_reset(mls_buffer_writer *writer);
-bool mls_buffer_writer_is_overflow(mls_buffer_writer *writer);
+mls_bool mls_buffer_writer_is_overflow(mls_buffer_writer *writer);
 
 ////////////////////////////////////////////////////////////////////////////////
 

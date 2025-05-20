@@ -52,7 +52,7 @@ typedef struct
 
 void mls_cp_pack_builder_init(mls_cp_pack_builder *builder);
 void mls_cp_pack_builder_reset(mls_cp_pack_builder *builder);
-bool mls_cp_pack_builder_is_overflow(mls_cp_pack_builder *builder);
+mls_bool mls_cp_pack_builder_is_overflow(mls_cp_pack_builder *builder);
 
 void mls_cp_pack_builder_add_uint8(mls_cp_pack_builder *builder, mls_cp_block_head *head, uint8_t value);
 void mls_cp_pack_builder_add_uint16(mls_cp_pack_builder *builder, mls_cp_block_head *head, uint16_t value);

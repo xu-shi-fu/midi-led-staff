@@ -27,9 +27,9 @@ void mls_buffer_entity_release(mls_buffer_entity *ent)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// mls_buffer_x::
+// mls_buffer::
 
-void mls_buffer_init(mls_buffer_x *buffer)
+void mls_buffer_init(mls_buffer *buffer)
 {
     if (buffer)
     {
@@ -37,7 +37,7 @@ void mls_buffer_init(mls_buffer_x *buffer)
     }
 }
 
-mls_error mls_buffer_create(mls_buffer_x *buffer)
+mls_error mls_buffer_create(mls_buffer *buffer)
 {
     if (buffer == NULL)
     {
@@ -60,7 +60,7 @@ mls_error mls_buffer_create(mls_buffer_x *buffer)
     return NULL;
 }
 
-void mls_buffer_release(mls_buffer_x *buffer)
+void mls_buffer_release(mls_buffer *buffer)
 {
     if (buffer)
     {
@@ -74,22 +74,22 @@ void mls_buffer_release(mls_buffer_x *buffer)
     }
 }
 
-bool mls_buffer_is_ready(mls_buffer_x *buffer)
+mls_bool mls_buffer_is_ready(mls_buffer *buffer)
 {
     if (buffer)
     {
         if (buffer->entity)
         {
-            return true;
+            return YES;
         }
     }
-    return false;
+    return NO;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_holder::
 
-void mls_buffer_holder_init(mls_buffer_holder *h, mls_buffer_x *buf)
+void mls_buffer_holder_init(mls_buffer_holder *h, mls_buffer *buf)
 {
     if (h)
     {
@@ -146,7 +146,7 @@ void mls_buffer_holder_release(mls_buffer_holder *h)
     }
 }
 
-bool mls_buffer_holder_is_ready(mls_buffer_holder *h)
+mls_bool mls_buffer_holder_is_ready(mls_buffer_holder *h)
 {
     if (h)
     {
@@ -154,17 +154,17 @@ bool mls_buffer_holder_is_ready(mls_buffer_holder *h)
         {
             if (h->buffer->entity)
             {
-                return true;
+                return YES;
             }
         }
     }
-    return false;
+    return NO;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_slice::
 
-void mls_buffer_slice_init(mls_buffer_slice *slice, mls_buffer_x *buffer)
+void mls_buffer_slice_init(mls_buffer_slice *slice, mls_buffer *buffer)
 {
     if (slice && buffer)
     {
@@ -179,7 +179,7 @@ void mls_buffer_slice_reset(mls_buffer_slice *slice)
 {
     if (slice)
     {
-        mls_buffer_x *buffer = slice->buffer;
+        mls_buffer *buffer = slice->buffer;
         if (buffer)
         {
             slice->data = buffer->data;

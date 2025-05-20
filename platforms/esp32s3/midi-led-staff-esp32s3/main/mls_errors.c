@@ -46,13 +46,13 @@ void mls_error_holder_push(mls_error_holder *holder, mls_error err)
     }
 }
 
-bool mls_error_holder_has_error(mls_error_holder *holder)
+mls_bool mls_error_holder_has_error(mls_error_holder *holder)
 {
     if (holder)
     {
-        return holder->err ? 1 : 0;
+        return holder->err ? YES : NO;
     }
-    return false;
+    return NO;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

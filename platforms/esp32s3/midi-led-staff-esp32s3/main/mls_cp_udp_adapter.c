@@ -22,8 +22,8 @@ typedef struct mls_cp_udp_adapter_t
     mls_cp_context context;
     mls_cp_request request;
     mls_cp_response response;
-    mls_buffer_x rx_buffer;
-    mls_buffer_x tx_buffer;
+    mls_buffer rx_buffer;
+    mls_buffer tx_buffer;
     mls_cp_block_array rx_blocks;
     mls_cp_block_array tx_blocks;
 
@@ -101,8 +101,8 @@ mls_cp_udp_adapter *mls_cp_udp_module_get_adapter(mls_module *m)
 mls_error mls_cp_udp_adapter_init(mls_cp_udp_adapter *adapter)
 {
 
-    mls_buffer_x *rx_buffer = &adapter->rx_buffer;
-    mls_buffer_x *tx_buffer = &adapter->tx_buffer;
+    mls_buffer *rx_buffer = &adapter->rx_buffer;
+    mls_buffer *tx_buffer = &adapter->tx_buffer;
     mls_cp_context *context = &adapter->context;
     mls_cp_request *request = &adapter->request;
     mls_cp_response *response = &adapter->response;
@@ -140,8 +140,8 @@ mls_error mls_cp_udp_adapter_create(mls_cp_udp_adapter *adapter)
     mls_error_holder err_h;
     mls_error_holder_init(&err_h);
 
-    mls_buffer_x *rx_buffer = &adapter->rx_buffer;
-    mls_buffer_x *tx_buffer = &adapter->tx_buffer;
+    mls_buffer *rx_buffer = &adapter->rx_buffer;
+    mls_buffer *tx_buffer = &adapter->tx_buffer;
 
     rx_buffer->capacity = UDP_RX_BUFFER_SIZE;
     tx_buffer->capacity = UDP_TX_BUFFER_SIZE;

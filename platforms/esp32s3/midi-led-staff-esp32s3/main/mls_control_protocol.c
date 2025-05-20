@@ -21,8 +21,8 @@ void mls_cp_block_array_add_entity(mls_cp_block_array *array, mls_cp_block_entit
     {
         return;
     }
-    const uint count = array->count;
-    const uint capacity = array->capacity;
+    const mls_uint count = array->count;
+    const mls_uint capacity = array->capacity;
     mls_cp_block_ref *blocks = array->blocks;
     if (blocks && (count < capacity))
     {
@@ -31,7 +31,7 @@ void mls_cp_block_array_add_entity(mls_cp_block_array *array, mls_cp_block_entit
     }
     else
     {
-        array->overflow = true;
+        array->overflow = MLS_YES;
     }
 }
 
@@ -64,20 +64,20 @@ void mls_cp_pack_builder_reset(mls_cp_pack_builder *builder)
     }
 }
 
-bool mls_cp_pack_builder_is_overflow(mls_cp_pack_builder *builder)
+mls_bool mls_cp_pack_builder_is_overflow(mls_cp_pack_builder *builder)
 {
     if (builder)
     {
         if (mls_cp_block_array_is_overflow(builder->blocks))
         {
-            return true;
+            return YES;
         }
         if (mls_buffer_writer_is_overflow(builder->writer))
         {
-            return true;
+            return YES;
         }
     }
-    return false;
+    return NO;
 }
 
 void mls_cp_pack_builder_add_uint8(mls_cp_pack_builder *builder, mls_cp_block_head *head, uint8_t value) {}
