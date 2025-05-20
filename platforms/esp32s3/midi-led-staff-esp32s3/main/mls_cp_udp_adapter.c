@@ -24,6 +24,8 @@ typedef struct mls_cp_udp_adapter_t
     mls_cp_response response;
     mls_buffer_x rx_buffer;
     mls_buffer_x tx_buffer;
+    mls_cp_block_array rx_blocks;
+    mls_cp_block_array tx_blocks;
 
     mls_task task;
 
@@ -98,12 +100,62 @@ mls_cp_udp_adapter *mls_cp_udp_module_get_adapter(mls_module *m)
 
 mls_error mls_cp_udp_adapter_init(mls_cp_udp_adapter *adapter)
 {
+
+    mls_buffer_x *rx_buffer = &adapter->rx_buffer;
+    mls_buffer_x *tx_buffer = &adapter->tx_buffer;
+    mls_cp_context *context = &adapter->context;
+    mls_cp_request *request = &adapter->request;
+    mls_cp_response *response = &adapter->response;
+    mls_cp_block_array *rx_blocks = &adapter->rx_blocks;
+    mls_cp_block_array *tx_blocks = &adapter->tx_blocks;
+    mls_task *task = &adapter->task;
+
+    mls_buffer_init(rx_buffer);
+    mls_buffer_init(tx_buffer);
+    mls_cp_block_array_init(rx_blocks);
+    mls_cp_block_array_init(tx_blocks);
+    mls_buffer_slice_init(&request->buffer, rx_buffer);
+    mls_buffer_slice_init(&response->buffer, tx_buffer);
+    mls_task_init(task);
+
+    context->request = request;
+    context->response = response;
+    context->server = adapter->server;
+    context->implementation = &adapter->impl;
+    context->dispatcher = NULL;
+    context->handler = NULL;
+
+    request->context = context;
+    request->blocks = rx_blocks;
+
+    response->context = context;
+    response->blocks = tx_blocks;
+
     return NULL;
 }
 
 mls_error mls_cp_udp_adapter_create(mls_cp_udp_adapter *adapter)
 {
-    return NULL;
+    mls_error err;
+    mls_error_holder err_h;
+    mls_error_holder_init(&err_h);
+
+    mls_buffer_x *rx_buffer = &adapter->rx_buffer;
+    mls_buffer_x *tx_buffer = &adapter->tx_buffer;
+
+    rx_buffer->capacity = UDP_RX_BUFFER_SIZE;
+    tx_buffer->capacity = UDP_TX_BUFFER_SIZE;
+
+    err = mls_buffer_create(rx_buffer);
+    mls_error_holder_push(&err_h, err);
+
+    err = mls_buffer_create(tx_buffer);
+    mls_error_holder_push(&err_h, err);
+
+    mls_buffer_slice_reset(&adapter->request.buffer);
+    mls_buffer_slice_reset(&adapter->response.buffer);
+
+    return err_h.err;
 }
 
 mls_error mls_cp_udp_adapter_start(mls_cp_udp_adapter *adapter)
@@ -114,7 +166,7 @@ mls_error mls_cp_udp_adapter_start(mls_cp_udp_adapter *adapter)
         return err;
     }
     mls_task *task = &adapter->task;
-    return mls_tasks_start(task);
+    return mls_task_start(task);
 }
 
 mls_error mls_cp_udp_adapter_listen(mls_cp_udp_adapter *adapter)

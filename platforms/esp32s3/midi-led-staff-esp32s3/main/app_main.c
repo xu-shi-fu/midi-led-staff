@@ -28,36 +28,55 @@ mls_error app_main_inner(void)
     mls_app *app;
     app = &the_app;
 
-    // init
     err = mls_app_init(app);
     if (err)
     {
         return err;
     }
 
-    // create
     err = mls_app_create(app);
     if (err)
     {
         return err;
     }
 
-    // start
     err = mls_app_start(app);
     if (err)
     {
         return err;
     }
 
-    // resume
     err = mls_app_resume(app);
     if (err)
     {
         return err;
     }
 
-    // run_loop
-    return mls_app_loop(app);
+    err = mls_app_loop(app);
+    if (err)
+    {
+        return err;
+    }
+
+    err = mls_app_pause(app);
+    if (err)
+    {
+        return err;
+    }
+
+    err = mls_app_stop(app);
+    if (err)
+    {
+        return err;
+    }
+
+    err = mls_app_destroy(app);
+    if (err)
+    {
+        return err;
+    }
+
+    return NULL;
 }
 
 void app_main(void)
@@ -68,5 +87,5 @@ void app_main(void)
     {
         mls_errors_log(err);
     }
-    mls_tasks_sleep(3000);
+    mls_sleep(3000);
 }

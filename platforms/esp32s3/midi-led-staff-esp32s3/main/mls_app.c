@@ -15,21 +15,36 @@ void mls_app_wire_modules(mls_app *app)
 mls_error mls_app_enumerate_modules(mls_app *app)
 {
 
+    mls_module *mod_nvs = mls_nvs_module_init(&app->nvs);
+    mls_module *mod_settings = mls_settings_module_init(&app->settings);
+    mls_module *mod_led = mls_led_module_init(&app->led);
+    mls_module *mod_tusb_midi = mls_tusb_midi_module_init(&app->tusb_midi);
+    mls_module *mod_ble = mls_ble_module_init(&app->ble);
+    mls_module *mod_wifi = mls_wifi_module_init(&app->wifi);
+    mls_module *mod_udp = mls_cp_udp_module_init(&app->udp);
+    mls_module *mod_server = mls_cp_server_module_init(&app->server);
+    mls_module *mod_engine = mls_engine_module_init(&app->engine);
+
+    mod_nvs->enabled = true;
+    mod_settings->enabled = true;
+    mod_led->enabled = true;
+    mod_udp->enabled = true;
+
     // list modules
     mls_module_array *modules = &app->modules;
     mls_module_array_init(modules);
     mls_module_array_create(modules, 10);
 
     // 这里的顺序决定了启动顺序
-    mls_module_array_add(modules, mls_nvs_module_init(&app->nvs));
-    mls_module_array_add(modules, mls_settings_module_init(&app->settings));
-    mls_module_array_add(modules, mls_led_module_init(&app->led));
-    mls_module_array_add(modules, mls_tusb_midi_module_init(&app->tusb_midi));
-    mls_module_array_add(modules, mls_ble_module_init(&app->ble));
-    mls_module_array_add(modules, mls_wifi_module_init(&app->wifi));
-    mls_module_array_add(modules, mls_cp_udp_module_init(&app->udp));
-    mls_module_array_add(modules, mls_cp_server_module_init(&app->server));
-    mls_module_array_add(modules, mls_engine_module_init(&app->engine));
+    mls_module_array_add(modules, mod_nvs);
+    mls_module_array_add(modules, mod_settings);
+    mls_module_array_add(modules, mod_led);
+    mls_module_array_add(modules, mod_tusb_midi);
+    mls_module_array_add(modules, mod_ble);
+    mls_module_array_add(modules, mod_wifi);
+    mls_module_array_add(modules, mod_udp);
+    mls_module_array_add(modules, mod_server);
+    mls_module_array_add(modules, mod_engine);
 
     if (mls_module_array_is_overflow(modules))
     {

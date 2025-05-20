@@ -162,3 +162,35 @@ bool mls_buffer_holder_is_ready(mls_buffer_holder *h)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// mls_buffer_slice::
+
+void mls_buffer_slice_init(mls_buffer_slice *slice, mls_buffer_x *buffer)
+{
+    if (slice && buffer)
+    {
+        memset(slice, 0, sizeof(slice[0]));
+        slice->buffer = buffer;
+        slice->data = buffer->data;
+        slice->length = buffer->size;
+    }
+}
+
+void mls_buffer_slice_reset(mls_buffer_slice *slice)
+{
+    if (slice)
+    {
+        mls_buffer_x *buffer = slice->buffer;
+        if (buffer)
+        {
+            slice->data = buffer->data;
+            slice->length = buffer->size;
+        }
+        else
+        {
+            slice->data = NULL;
+            slice->length = 0;
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////

@@ -100,7 +100,7 @@ mls_error mls_led_loop(mls_led *led_s)
     while (1)
     {
         // vTaskDelay(pdMS_TO_TICKS(EXAMPLE_CHASE_SPEED_MS));
-        mls_tasks_sleep(EXAMPLE_CHASE_SPEED_MS);
+        mls_sleep(EXAMPLE_CHASE_SPEED_MS);
 
         offset = settings->led.output_offset;
         limit = settings->led.output_limit;

@@ -122,7 +122,7 @@ void mls_panic(mls_error err)
 
         for (;;)
         {
-            mls_tasks_sleep(500);
+            mls_sleep(500);
         }
     }
 }

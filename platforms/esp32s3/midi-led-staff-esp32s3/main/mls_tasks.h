@@ -35,10 +35,11 @@ typedef struct
 
 // functions
 
-mls_error mls_tasks_init(mls_task *task);
-mls_error mls_tasks_start(mls_task *task);
-mls_error mls_tasks_run(mls_task *task);
-void mls_tasks_sleep(uint32_t ms);
+mls_error mls_task_init(mls_task *task);
+mls_error mls_task_start(mls_task *task);
+mls_error mls_task_run(mls_task *task);
+
+void mls_sleep(uint32_t ms);
 
 void mls_mutex_init(mls_mutex *m);
 void mls_mutex_lock(mls_mutex *m);

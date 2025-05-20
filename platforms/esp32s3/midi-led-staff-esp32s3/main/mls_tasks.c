@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // fn
 
-void mls_tasks_sleep(uint32_t ms)
+void mls_sleep(uint32_t ms)
 {
     vTaskDelay(ms / portTICK_PERIOD_MS);
 }
@@ -13,7 +13,7 @@ void mls_tasks_run_idle_loop()
 {
     while (1)
     {
-        mls_tasks_sleep(500);
+        mls_sleep(500);
     }
 }
 
@@ -42,7 +42,7 @@ void mls_tasks_common_fn(void *p)
 ////////////////////////////////////////////////////////////////////////////////
 // task
 
-mls_error mls_tasks_init(mls_task *t)
+mls_error mls_task_init(mls_task *t)
 {
     if (t)
     {
@@ -53,7 +53,7 @@ mls_error mls_tasks_init(mls_task *t)
     return NULL;
 }
 
-mls_error mls_tasks_start(mls_task *task)
+mls_error mls_task_start(mls_task *task)
 {
     // todo ...
 
@@ -70,7 +70,7 @@ mls_error mls_tasks_start(mls_task *task)
     return NULL;
 }
 
-mls_error mls_tasks_run(mls_task *t)
+mls_error mls_task_run(mls_task *t)
 {
     ESP_LOGI(TAG, "run task: %s", t->name);
 

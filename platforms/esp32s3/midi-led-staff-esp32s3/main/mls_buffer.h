@@ -42,7 +42,7 @@ typedef struct mls_buffer_holder_t
 
 } mls_buffer_holder;
 
-// mls_buffer_slice 表示指向实际缓冲区的一个片段, 
+// mls_buffer_slice 表示指向实际缓冲区的一个片段,
 // 这个结构包含以下成员:
 // - buffer: 指向数据缓冲区;
 // - data: 指向片段的开头;
@@ -104,6 +104,7 @@ bool mls_buffer_holder_is_ready(mls_buffer_holder *h);
 // mls_buffer_slice
 
 void mls_buffer_slice_init(mls_buffer_slice *slice, mls_buffer_x *buffer);
+void mls_buffer_slice_reset(mls_buffer_slice *slice);
 
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_reader
