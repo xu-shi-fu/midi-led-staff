@@ -3,7 +3,7 @@
 #ifndef __mls_cp_context_h__
 #define __mls_cp_context_h__
 
-#include "mls_common.h"
+#include "mls_common_mls.h"
 #include "mls_buffer.h"
 #include "mls_api.h"
 #include "mls_control_protocol.h"

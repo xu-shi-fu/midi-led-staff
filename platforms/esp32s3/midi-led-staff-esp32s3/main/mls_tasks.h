@@ -9,23 +9,25 @@
 // #include "mls_app.h"
 
 struct mls_app_t;
+struct mls_task_t;
 
 /***
  * 函数指针
  */
 
-typedef mls_error (*mls_task_func)(struct mls_app_t *);
+typedef mls_error (*mls_task_func)(struct mls_task_t *task);
 
 // struct
 
-typedef struct
+typedef struct mls_task_t
 {
     mls_error error;
     struct mls_app_t *app;
     mls_task_func fn;
-    uint priority;
+    mls_uint priority;
     const char *name;
     TaskHandle_t handle;
+    void *data; // 调用端自定义数据
 
 } mls_task;
 

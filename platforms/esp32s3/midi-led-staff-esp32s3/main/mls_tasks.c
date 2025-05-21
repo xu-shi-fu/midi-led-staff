@@ -11,21 +11,22 @@ void mls_sleep(uint32_t ms)
 
 void mls_tasks_run_idle_loop()
 {
-    while (1)
+    for (;;)
     {
-        mls_sleep(500);
+        mls_sleep(1000);
     }
 }
 
 void mls_tasks_common_fn(void *p)
 {
-    mls_task *task = p;
+    struct mls_task_t *task = p;
     if (task)
     {
         // ESP_LOGI(TAG, "run task: %s", task->name);
-        if (task->fn && task->app)
+        mls_task_func fn = task->fn;
+        if (fn)
         {
-            mls_error err = task->fn(task->app);
+            mls_error err = fn(task);
             mls_errors_log_warn(err);
             task->error = err;
         }
@@ -35,6 +36,7 @@ void mls_tasks_common_fn(void *p)
         }
         ESP_LOGI(TAG, "task is done, name: %s", task->name);
     }
+
     // 执行完成后进入死循环,否则系统会出错
     mls_tasks_run_idle_loop();
 }
@@ -60,7 +62,7 @@ mls_error mls_task_start(mls_task *task)
     ESP_LOGI(TAG, "start task: %s", task->name);
 
     uint16_t stack_depth = 4 * 1024;
-    uint priority = task->priority;
+    mls_uint priority = task->priority;
     TaskHandle_t *h = &task->handle;
     const char *const task_name = task->name;
     void *params = task;
@@ -74,7 +76,13 @@ mls_error mls_task_run(mls_task *t)
 {
     ESP_LOGI(TAG, "run task: %s", t->name);
 
-    return t->fn(t->app);
+    mls_task_func fn = t->fn;
+
+    if (fn)
+    {
+        return fn(t);
+    }
+    return NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

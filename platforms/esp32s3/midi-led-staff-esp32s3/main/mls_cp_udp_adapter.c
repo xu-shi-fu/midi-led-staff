@@ -131,6 +131,8 @@ mls_error mls_cp_udp_adapter_init(mls_cp_udp_adapter *adapter)
     response->context = context;
     response->blocks = tx_blocks;
 
+    task->name = "mls_cp_udp_adapter_task";
+
     return NULL;
 }
 
@@ -180,6 +182,11 @@ mls_error mls_cp_udp_adapter_listen(mls_cp_udp_adapter *adapter)
 
     // create socket
     int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock_fd < 0)
+    {
+        ESP_LOGE(TAG, "error: udp socket create failed");
+        return mls_errors_make(500, "udp socket create error");
+    }
 
     // address
     struct sockaddr_in addr;

@@ -16,6 +16,7 @@
 #include "mls_settings.h"
 #include "mls_nvs.h"
 #include "mls_cp_server.h"
+#include "mls_cp_mock_adapter.h"
 #include "mls_tusb_midi.h"
 
 typedef struct mls_app_t
@@ -36,6 +37,7 @@ typedef struct mls_app_t
     mls_settings_module settings;
     mls_tusb_midi_module tusb_midi;
     mls_cp_udp_module udp;
+    mls_cp_mock_module cp_mock;
     mls_wifi_module wifi;
 
 } mls_app;

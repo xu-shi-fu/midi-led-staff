@@ -24,11 +24,14 @@ mls_error mls_app_enumerate_modules(mls_app *app)
     mls_module *mod_udp = mls_cp_udp_module_init(&app->udp);
     mls_module *mod_server = mls_cp_server_module_init(&app->server);
     mls_module *mod_engine = mls_engine_module_init(&app->engine);
+    mls_module *mod_cp_mock = mls_cp_mock_module_init(&app->cp_mock);
 
     mod_nvs->enabled = true;
     mod_settings->enabled = true;
     mod_led->enabled = true;
-    mod_udp->enabled = true;
+    mod_udp->enabled = false;
+    mod_ble->enabled = false;
+    mod_cp_mock->enabled = true;
 
     // list modules
     mls_module_array *modules = &app->modules;
@@ -43,6 +46,7 @@ mls_error mls_app_enumerate_modules(mls_app *app)
     mls_module_array_add(modules, mod_ble);
     mls_module_array_add(modules, mod_wifi);
     mls_module_array_add(modules, mod_udp);
+    mls_module_array_add(modules, mod_cp_mock);
     mls_module_array_add(modules, mod_server);
     mls_module_array_add(modules, mod_engine);
 
