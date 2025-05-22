@@ -44,9 +44,21 @@
 
 // fields:COMMON
 
-#define MLS_CP_FIELD_COMMON_END_OF_PACK 0
-#define MLS_CP_FIELD_COMMON_METHOD 1
-#define MLS_CP_FIELD_COMMON_ACTION 2
+#define MLS_CP_FIELD_COMMON_END_OF_PACK 0    // :uint8
+#define MLS_CP_FIELD_COMMON_METHOD 1         // :uint8
+#define MLS_CP_FIELD_COMMON_LOCATION 2       // :string
+#define MLS_CP_FIELD_COMMON_VERSION 3        // :uint16
+#define MLS_CP_FIELD_COMMON_STATUS_CODE 4    // :uint16
+#define MLS_CP_FIELD_COMMON_STATUS_MSG 5     // :string
+#define MLS_CP_FIELD_COMMON_TRANSACTION_ID 6 // :uint32
+#define MLS_CP_FIELD_COMMON_CHECK_SUM 7      // :uint8
+
+// cp:methods
+
+#define MLS_CP_METHOD_GET 0
+#define MLS_CP_METHOD_PUT 2
+#define MLS_CP_METHOD_POST 1
+#define MLS_CP_METHOD_DELETE 3
 
 /*******************************************************************************
  * 基础类型

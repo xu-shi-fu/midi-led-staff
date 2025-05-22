@@ -229,6 +229,23 @@ mls_error mls_cp_mock_adapter_run(mls_cp_mock_adapter *adapter)
 mls_error mls_cp_mock_adapter_run_test1(mls_cp_mock_adapter *adapter)
 {
     mls_cp_context *ctx = &adapter->context;
+    mls_buffer *buffer = ctx->request->buffer;
+    mls_cp_block_writer writer;
+    mls_cp_block_head head;
+
+    mls_buffer_reset(buffer);
+    mls_cp_block_writer_init(&writer, buffer);
+
+    head.group = MLS_CP_GROUP_COMMON;
+    mls_byte method = MLS_CP_METHOD_GET;
+    const char *location = "/foo/bar";
+    mls_uint32 trans_id = 2233;
+
+    mls_cp_block_writer_write_uint8(&writer, mls_cp_block_head_set_field(&head, MLS_CP_FIELD_COMMON_METHOD), method);
+    mls_cp_block_writer_write_string(&writer, mls_cp_block_head_set_field(&head, MLS_CP_FIELD_COMMON_LOCATION), location);
+    mls_cp_block_writer_write_uint32(&writer, mls_cp_block_head_set_field(&head, MLS_CP_FIELD_COMMON_TRANSACTION_ID), trans_id);
+
+    mls_cp_block_writer_flush(&writer);
 
     return mls_cp_server_handle(ctx);
 }

@@ -9,9 +9,18 @@
 #define NO 0
 
 typedef char mls_bool;
+typedef unsigned char mls_byte;
 
 typedef int mls_int;
+typedef char mls_int8;
+typedef short mls_int16;
+typedef long mls_int32;
+typedef long long mls_int64;
 
 typedef unsigned int mls_uint;
+typedef unsigned char mls_uint8;
+typedef unsigned short mls_uint16;
+typedef unsigned long mls_uint32;
+typedef unsigned long long mls_uint64;
 
 #endif // __mls_types_h__

@@ -46,6 +46,15 @@ void mls_error_holder_push(mls_error_holder *holder, mls_error err)
     }
 }
 
+mls_error mls_error_holder_get_error(mls_error_holder *holder)
+{
+    if (holder)
+    {
+        return holder->err;
+    }
+    return NULL;
+}
+
 mls_bool mls_error_holder_has_error(mls_error_holder *holder)
 {
     if (holder)
@@ -58,7 +67,7 @@ mls_bool mls_error_holder_has_error(mls_error_holder *holder)
 ////////////////////////////////////////////////////////////////////////////////
 // error functions
 
-mls_error mls_errors_make(int code, char *const msg)
+mls_error mls_errors_make(int code, const char *msg)
 {
     mls_error_info *buffer = &the_error_buffer;
     if (msg)
@@ -125,4 +134,10 @@ void mls_panic(mls_error err)
             mls_sleep(500);
         }
     }
+}
+
+void mls_panic_string(const char *err_msg)
+{
+    mls_error err = mls_errors_make(500, err_msg);
+    mls_panic(err);
 }

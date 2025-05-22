@@ -29,7 +29,6 @@ typedef struct mls_buffer_t
 {
     size_t capacity;
     size_t size;
-
     uint8_t *data;
     mls_buffer_entity *entity;
 
@@ -70,11 +69,12 @@ typedef struct mls_buffer_reader_t
 typedef struct mls_buffer_writer_t
 {
 
-    mls_buffer_slice slice;
+    // uint8_t *ptr;
 
-    uint8_t *ptr;
     mls_bool overflow;
     mls_error_holder err_holder;
+
+    mls_buffer_slice slice;
 
 } mls_buffer_writer;
 
@@ -90,6 +90,7 @@ void mls_buffer_entity_release(mls_buffer_entity *entity);
 void mls_buffer_init(mls_buffer *buffer);
 mls_error mls_buffer_create(mls_buffer *buffer);
 void mls_buffer_release(mls_buffer *buffer);
+void mls_buffer_reset(mls_buffer *buffer);
 mls_bool mls_buffer_is_ready(mls_buffer *buffer);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +104,7 @@ mls_bool mls_buffer_holder_is_ready(mls_buffer_holder *h);
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_slice
 
-void mls_buffer_slice_init(mls_buffer_slice *slice, mls_buffer *buffer);
+mls_error mls_buffer_slice_init(mls_buffer_slice *slice, mls_buffer *buffer);
 void mls_buffer_slice_reset(mls_buffer_slice *slice);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -115,10 +116,13 @@ size_t mls_buffer_reader_read(mls_buffer_reader *reader, uint8_t *dst, size_t le
 ////////////////////////////////////////////////////////////////////////////////
 // mls_buffer_writer
 
-void mls_buffer_writer_init(mls_buffer_writer *writer, mls_buffer *buffer);
-size_t mls_buffer_writer_write(mls_buffer_writer *writer, uint8_t *data, size_t len);
-void mls_buffer_writer_reset(mls_buffer_writer *writer);
+mls_error mls_buffer_writer_init(mls_buffer_writer *writer, mls_buffer *buffer);
+mls_error mls_buffer_writer_get_error(mls_buffer_writer *writer);
+mls_error mls_buffer_writer_write(mls_buffer_writer *writer, const void *data, size_t len);
+mls_bool mls_buffer_writer_has_error(mls_buffer_writer *writer);
 mls_bool mls_buffer_writer_is_overflow(mls_buffer_writer *writer);
+void mls_buffer_writer_reset(mls_buffer_writer *writer);
+void mls_buffer_writer_flush(mls_buffer_writer *writer);
 
 ////////////////////////////////////////////////////////////////////////////////
 

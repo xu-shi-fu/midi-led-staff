@@ -8,6 +8,7 @@
 #include "mls_buffer.h"
 #include "mls_errors.h"
 #include "mls_cp_base.h"
+#include "mls_net_rw.h"
 
 struct mls_cp_block_array_holder_t;
 
@@ -19,7 +20,7 @@ struct mls_cp_block_array_holder_t;
 typedef struct mls_cp_block_head_t
 {
 
-    mls_cp_block_size size;
+    mls_cp_block_size size; // 数据块的大小 = sizeof(head) + sizeof(body)
     mls_cp_block_type type;
     mls_cp_group_id group;
     mls_cp_field_id field;
@@ -34,6 +35,22 @@ typedef struct mls_cp_block_t
     uint8_t body[0];
 
 } mls_cp_block;
+
+// mls-cp 数据块读取器
+typedef struct mls_cp_block_reader_t
+{
+
+    mls_net_reader reader;
+
+} mls_cp_block_reader;
+
+// mls-cp 数据块写入器
+typedef struct mls_cp_block_writer_t
+{
+
+    mls_net_writer writer;
+
+} mls_cp_block_writer;
 
 /*******************************************************************************
  * block-array
@@ -108,5 +125,44 @@ void mls_cp_block_array_add_item(mls_cp_block_array *buffer, mls_cp_block_array_
 void mls_cp_block_array_holder_init(mls_cp_block_array_holder *holder, mls_cp_block_array *array);
 mls_error mls_cp_block_array_holder_create(mls_cp_block_array_holder *holder, mls_uint capacity);
 void mls_cp_block_array_holder_release(mls_cp_block_array_holder *holder);
+
+/**************************************
+ * mls_cp_block_reader
+ * */
+
+mls_error mls_cp_block_reader_init(mls_cp_block_reader *reader, mls_buffer *buffer);
+mls_error mls_cp_block_reader_error(mls_cp_block_reader *reader);
+
+/**************************************
+ * mls_cp_block_head
+ * */
+
+mls_cp_block_head *mls_cp_block_head_set_field(mls_cp_block_head *head, mls_cp_field_id field);
+
+/**************************************
+ * mls_cp_block_writer
+ * */
+
+mls_error mls_cp_block_writer_init(mls_cp_block_writer *writer, mls_buffer *buffer);
+mls_error mls_cp_block_writer_error(mls_cp_block_writer *writer);
+void mls_cp_block_writer_flush(mls_cp_block_writer *writer);
+void mls_cp_block_writer_reset(mls_cp_block_writer *writer);
+
+void mls_cp_block_writer_write_block(mls_cp_block_writer *writer, mls_cp_block_head *head, const void *body_data, size_t body_len);
+void mls_cp_block_writer_write_block_head(mls_cp_block_writer *writer, mls_cp_block_head *head);
+
+void mls_cp_block_writer_write_byte(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_byte b);
+void mls_cp_block_writer_write_bytes(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_byte *data_ptr, size_t data_len);
+void mls_cp_block_writer_write_string(mls_cp_block_writer *writer, mls_cp_block_head *head, const char *str);
+
+void mls_cp_block_writer_write_uint8(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_uint8 n);
+void mls_cp_block_writer_write_uint16(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_uint16 n);
+void mls_cp_block_writer_write_uint32(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_uint32 n);
+void mls_cp_block_writer_write_uint64(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_uint64 n);
+
+void mls_cp_block_writer_write_int8(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_int8 n);
+void mls_cp_block_writer_write_int16(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_int16 n);
+void mls_cp_block_writer_write_int32(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_int32 n);
+void mls_cp_block_writer_write_int64(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_int64 n);
 
 #endif // __mls_cp_block_h__
