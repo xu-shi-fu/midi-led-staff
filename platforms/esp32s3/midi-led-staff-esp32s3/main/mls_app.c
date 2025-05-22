@@ -3,18 +3,34 @@
 #include "mls_tasks.h"
 #include "mls_module.h"
 
+void mls_app_bind_modules(mls_app *app);
+void mls_app_wire_modules(mls_app *app);
+mls_error mls_app_enumerate_modules(mls_app *app);
+
 ////////////////////////////////////////////////////////////////////////////////
 // internal func
 
+// 把 app 绑定到各个模块上
+void mls_app_bind_modules(mls_app *app)
+{
+    uint count = app->modules.count;
+    mls_module_ref *list = app->modules.modules;
+    for (uint i = 0; i < count; i++)
+    {
+        mls_module *mod = list[i].module;
+        mod->app = app;
+    }
+}
+
+// 把各个模块连接起来
 void mls_app_wire_modules(mls_app *app)
 {
-
     // app->udp.context.server = &app->server;
 }
 
+// 列举 app 中的所有模块
 mls_error mls_app_enumerate_modules(mls_app *app)
 {
-
     mls_module *mod_nvs = mls_nvs_module_init(&app->nvs);
     mls_module *mod_settings = mls_settings_module_init(&app->settings);
     mls_module *mod_led = mls_led_module_init(&app->led);
@@ -26,12 +42,13 @@ mls_error mls_app_enumerate_modules(mls_app *app)
     mls_module *mod_engine = mls_engine_module_init(&app->engine);
     mls_module *mod_cp_mock = mls_cp_mock_module_init(&app->cp_mock);
 
-    mod_nvs->enabled = true;
-    mod_settings->enabled = true;
-    mod_led->enabled = true;
-    mod_udp->enabled = false;
-    mod_ble->enabled = false;
-    mod_cp_mock->enabled = true;
+    mod_nvs->enabled = YES;
+    mod_settings->enabled = YES;
+    mod_led->enabled = YES;
+    mod_udp->enabled = NO;
+    mod_ble->enabled = NO;
+    mod_cp_mock->enabled = YES;
+    mod_server->enabled = YES;
 
     // list modules
     mls_module_array *modules = &app->modules;
@@ -68,6 +85,7 @@ mls_error mls_app_init_pre(mls_app *app)
         return err;
     }
 
+    mls_app_bind_modules(app);
     mls_app_wire_modules(app);
 
     return NULL;

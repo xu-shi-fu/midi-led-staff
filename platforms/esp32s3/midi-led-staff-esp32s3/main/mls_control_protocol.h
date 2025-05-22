@@ -18,7 +18,7 @@ struct mls_cp_block_entity_t;
  * 函数指针
  */
 
-typedef mls_error (*mls_cp_parser_callback_func)(struct mls_cp_pack_parser_t *, struct mls_cp_block_entity_t *block);
+typedef mls_error (*mls_cp_parser_callback_func)(struct mls_cp_pack_parser_t *, struct mls_cp_block_t *block);
 
 /*******************************************************************************
  * parser

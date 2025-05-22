@@ -26,8 +26,8 @@ struct mls_cp_handler_registration_t;
  * 函数指针
  */
 
-typedef mls_error (*mls_cp_handler_func)(struct mls_cp_context_t *context);
-typedef mls_error (*mls_cp_dispatcher_func)(struct mls_cp_context_t *context, mls_buffer_slice *data);
+typedef mls_error (*mls_cp_handler_func)(struct mls_cp_context_t *context, struct mls_cp_request_t *req);
+typedef mls_error (*mls_cp_dispatcher_func)(struct mls_cp_context_t *context, struct mls_cp_response_t *resp);
 
 /*******************************************************************************
  *  dispatcher
@@ -46,6 +46,8 @@ typedef struct mls_cp_dispatcher_t
 
 typedef struct mls_cp_handler_t
 {
+    mls_cp_method method;
+    mls_cp_location location;
 
     mls_cp_handler_func fn;
 
@@ -56,7 +58,7 @@ typedef struct mls_cp_handler_registration_t
 
     struct mls_cp_handler_registration_t *next;
 
-    mls_cp_handler *handler;
+    mls_cp_handler handler;
 
 } mls_cp_handler_registration;
 
@@ -86,14 +88,12 @@ mls_error mls_cp_share_init(mls_cp_share *share);
 typedef struct mls_cp_server_t
 {
 
-    mls_cp_handler_registration *handlers;
+    mls_cp_handler_registration *handlers; // ptr:指向第一个 handler
     mls_cp_handler *main;
     mls_cp_share *share;
 
 } mls_cp_server;
 
-mls_error mls_cp_server_init(mls_cp_server *server);
-mls_error mls_cp_server_start(mls_cp_server *server);
 mls_error mls_cp_server_register_handler(mls_cp_server *server, mls_cp_handler *handler);
 mls_error mls_cp_server_register_handler_reg(mls_cp_server *server, mls_cp_handler_registration *hr);
 

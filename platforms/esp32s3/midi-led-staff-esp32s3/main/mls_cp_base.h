@@ -57,6 +57,9 @@ typedef uint8_t mls_cp_block_type; // 注意: 这个类型必须是 uint8
 typedef uint8_t mls_cp_group_id;   // 注意: 这个类型必须是 uint8
 typedef uint8_t mls_cp_field_id;   // 注意: 这个类型必须是 uint8
 
+typedef uint8_t mls_cp_method;       // 表示请求方法的 uint8
+typedef const char *mls_cp_location; // 表示请求位置的字符串
+
 /*******************************************************************************
  * EOF
  *  */

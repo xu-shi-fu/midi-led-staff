@@ -114,8 +114,6 @@ mls_error mls_cp_udp_adapter_init(mls_cp_udp_adapter *adapter)
     mls_buffer_init(tx_buffer);
     mls_cp_block_array_init(rx_blocks);
     mls_cp_block_array_init(tx_blocks);
-    mls_buffer_slice_init(&request->buffer, rx_buffer);
-    mls_buffer_slice_init(&response->buffer, tx_buffer);
     mls_task_init(task);
 
     context->request = request;
@@ -127,9 +125,11 @@ mls_error mls_cp_udp_adapter_init(mls_cp_udp_adapter *adapter)
 
     request->context = context;
     request->blocks = rx_blocks;
+    request->buffer = rx_buffer;
 
     response->context = context;
     response->blocks = tx_blocks;
+    response->buffer = tx_buffer;
 
     task->name = "mls_cp_udp_adapter_task";
 
@@ -145,17 +145,14 @@ mls_error mls_cp_udp_adapter_create(mls_cp_udp_adapter *adapter)
     mls_buffer *rx_buffer = &adapter->rx_buffer;
     mls_buffer *tx_buffer = &adapter->tx_buffer;
 
-    rx_buffer->capacity = UDP_RX_BUFFER_SIZE;
-    tx_buffer->capacity = UDP_TX_BUFFER_SIZE;
+    rx_buffer->capacity = CP_RX_BUFFER_SIZE;
+    tx_buffer->capacity = CP_TX_BUFFER_SIZE;
 
     err = mls_buffer_create(rx_buffer);
     mls_error_holder_push(&err_h, err);
 
     err = mls_buffer_create(tx_buffer);
     mls_error_holder_push(&err_h, err);
-
-    mls_buffer_slice_reset(&adapter->request.buffer);
-    mls_buffer_slice_reset(&adapter->response.buffer);
 
     return err_h.err;
 }
@@ -240,8 +237,7 @@ mls_error mls_cp_udp_adapter_run_loop(mls_cp_udp_adapter *adapter, bool infinity
 
         convert_address_from_sock_to_cp(&remote_sock_addr, &remote_cp_addr);
 
-        context.request->buffer.data = rx_buffer_data;
-        context.request->buffer.length = rx_len;
+        context.request->buffer->size = rx_len;
         context.request->remote = remote_cp_addr;
 
         mls_error err = mls_cp_server_handle(&context);

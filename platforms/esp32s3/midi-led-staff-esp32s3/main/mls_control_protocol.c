@@ -15,18 +15,45 @@ void mls_cp_block_array_init(mls_cp_block_array *buffer)
     }
 }
 
-void mls_cp_block_array_add_entity(mls_cp_block_array *array, mls_cp_block_entity *entity)
+mls_error mls_cp_block_array_create(mls_cp_block_array *buffer, mls_uint capacity)
 {
-    if (array == NULL || entity == NULL)
+    if (buffer == NULL)
+    {
+        return mls_errors_make(0, "param is null");
+    }
+
+    if (buffer->entity)
+    {
+        return NULL;
+    }
+
+    mls_cp_block_array_entity *ent = mls_cp_block_array_entity_create(capacity);
+
+    if (ent == NULL)
+    {
+        return mls_errors_make(0, "create block array entity failed");
+    }
+
+    buffer->entity = ent;
+    buffer->items = ent->items;
+    buffer->capacity = capacity;
+    buffer->count = 0;
+    buffer->overflow = NO;
+    return NULL;
+}
+
+void mls_cp_block_array_add_block(mls_cp_block_array *array, mls_cp_block *block)
+{
+    if (array == NULL || block == NULL)
     {
         return;
     }
     const mls_uint count = array->count;
     const mls_uint capacity = array->capacity;
-    mls_cp_block_ref *blocks = array->blocks;
-    if (blocks && (count < capacity))
+    mls_cp_block_array_item *items = array->items;
+    if (items && (count < capacity))
     {
-        blocks[count].block = entity;
+        items[count].block = block;
         array->count = count + 1;
     }
     else
@@ -35,11 +62,41 @@ void mls_cp_block_array_add_entity(mls_cp_block_array *array, mls_cp_block_entit
     }
 }
 
-void mls_cp_block_array_add_ref(mls_cp_block_array *buffer, mls_cp_block_ref *ref)
+void mls_cp_block_array_add_item(mls_cp_block_array *buffer, mls_cp_block_array_item *item)
 {
-    if (ref)
+    if (item)
     {
-        mls_cp_block_array_add_entity(buffer, ref->block);
+        mls_cp_block_array_add_block(buffer, item->block);
+    }
+}
+
+/*******************************************************************************
+ * mls_cp_block_array_entity
+ */
+
+mls_cp_block_array_entity *mls_cp_block_array_entity_create(mls_uint capacity)
+{
+    size_t size1 = sizeof(mls_cp_block_array_entity);
+    size_t size2 = sizeof(mls_cp_block_array_item) * capacity;
+    size_t size = size1 + size2;
+
+    void *p = malloc(size);
+    if (p == NULL)
+    {
+        return NULL;
+    }
+    memset(p, 0, size);
+
+    mls_cp_block_array_entity *entity = p;
+    entity->capacity = capacity;
+    return entity;
+}
+
+void mls_cp_block_array_entity_release(mls_cp_block_array_entity *entity)
+{
+    if (entity)
+    {
+        free(entity);
     }
 }
 
@@ -107,7 +164,7 @@ mls_error mls_cp_pack_parser_parse(mls_cp_pack_parser *parser, uint8_t *data, si
     uint8_t *ending = data + len;
     uint8_t *next_pos;
     mls_cp_parser_callback_func callback = parser->callback;
-    mls_cp_block_entity *block;
+    mls_cp_block *block;
     mls_error err;
 
     if (callback == NULL)
@@ -117,7 +174,7 @@ mls_error mls_cp_pack_parser_parse(mls_cp_pack_parser *parser, uint8_t *data, si
 
     for (; p < ending;)
     {
-        block = (mls_cp_block_entity *)p;
+        block = (mls_cp_block *)p;
         next_pos = p + block->head.size;
         if (next_pos > ending)
         {

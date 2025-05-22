@@ -20,8 +20,10 @@ struct mls_cp_response_t;
 typedef struct mls_cp_request_t
 {
     struct mls_cp_context_t *context;
+
     mls_cp_address remote;
-    mls_buffer_slice buffer;
+
+    mls_buffer *buffer;
     mls_cp_block_array *blocks;
 
 } mls_cp_request;
@@ -33,8 +35,10 @@ typedef struct mls_cp_request_t
 typedef struct mls_cp_response_t
 {
     struct mls_cp_context_t *context;
+
     mls_cp_address remote;
-    mls_buffer_slice buffer;
+
+    mls_buffer *buffer;
     mls_cp_block_array *blocks;
 
 } mls_cp_response;

@@ -27,25 +27,25 @@ typedef struct mls_cp_block_head_t
 } mls_cp_block_head;
 
 // 协议数据块的实体
-typedef struct mls_cp_block_entity_t
+typedef struct mls_cp_block_t
 {
     mls_cp_block_head head;
 
     uint8_t body[0];
 
-} mls_cp_block_entity;
-
-// 对协议数据块开头的引用
-typedef struct mls_cp_block_ref_t
-{
-
-    mls_cp_block_entity *block;
-
-} mls_cp_block_ref;
+} mls_cp_block;
 
 /*******************************************************************************
  * block-array
  */
+
+// 对协议数据块开头的引用
+typedef struct mls_cp_block_array_item_t
+{
+
+    mls_cp_block *block;
+
+} mls_cp_block_array_item;
 
 typedef struct mls_cp_block_array_entity_t
 {
@@ -53,7 +53,7 @@ typedef struct mls_cp_block_array_entity_t
     mls_uint capacity;
     struct mls_cp_block_array_holder_t *owner;
 
-    mls_cp_block_ref blocks[0];
+    mls_cp_block_array_item items[0];
 
 } mls_cp_block_array_entity;
 
@@ -72,7 +72,7 @@ typedef struct mls_cp_block_array_t
     mls_bool overflow;
 
     mls_cp_block_array_entity *entity;
-    mls_cp_block_ref *blocks; // -> entity.blocks
+    mls_cp_block_array_item *items; // -> entity.blocks
 
 } mls_cp_block_array;
 
@@ -100,8 +100,8 @@ mls_error mls_cp_block_array_create(mls_cp_block_array *buffer, mls_uint capacit
 void mls_cp_block_array_reset(mls_cp_block_array *buffer);
 mls_bool mls_cp_block_array_is_overflow(mls_cp_block_array *buffer);
 
-void mls_cp_block_array_add_entity(mls_cp_block_array *buffer, mls_cp_block_entity *entity);
-void mls_cp_block_array_add_ref(mls_cp_block_array *buffer, mls_cp_block_ref *ref);
+void mls_cp_block_array_add_block(mls_cp_block_array *buffer, mls_cp_block *block);
+void mls_cp_block_array_add_item(mls_cp_block_array *buffer, mls_cp_block_array_item *item);
 
 // block-array-holder
 
