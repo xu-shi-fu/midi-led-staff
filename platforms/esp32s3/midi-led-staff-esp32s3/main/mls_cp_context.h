@@ -23,6 +23,9 @@ typedef struct mls_cp_request_t
 
     mls_cp_address remote;
 
+    mls_cp_method method;
+    mls_cp_location location;
+
     mls_buffer *buffer;
     mls_cp_block_array *blocks;
 
@@ -59,6 +62,9 @@ typedef struct mls_cp_implementation_t
 // mls_cp_context 是抽象的控制协议上下文
 typedef struct mls_cp_context_t
 {
+
+    mls_cp_transaction_id transaction; // 事务 ID
+
     struct mls_cp_request_t *request;
     struct mls_cp_response_t *response;
     struct mls_cp_dispatcher_t *dispatcher;

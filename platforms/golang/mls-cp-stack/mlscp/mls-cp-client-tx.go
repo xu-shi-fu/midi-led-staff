@@ -3,16 +3,16 @@ package mlscp
 const (
 
 	// MethodGet 表示一个 GET 请求
-	MethodGet Method = 0
+	MethodGet Method = 1
 
 	// MethodPost 表示一个 POST 请求
-	MethodPost = 1
+	MethodPost = 2
 
 	// MethodPut 表示一个 PUT 请求
-	MethodPut = 2
+	MethodPut = 3
 
 	// MethodDelete 表示一个 DELETE 请求
-	MethodDelete = 3
+	MethodDelete = 4
 )
 
 ////////////////////////////////////////////////////////////////////////////////

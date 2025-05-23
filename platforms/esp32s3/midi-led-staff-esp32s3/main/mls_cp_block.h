@@ -105,12 +105,16 @@ typedef struct mls_cp_block_array_holder_t
  * functions
  */
 
-// block-array-entity
+/**************************************
+ *  block-array-entity
+ * */
 
 mls_cp_block_array_entity *mls_cp_block_array_entity_create(mls_uint capacity);
 void mls_cp_block_array_entity_release(mls_cp_block_array_entity *entity);
 
-// block-array
+/**************************************
+ *  block-array
+ * */
 
 void mls_cp_block_array_init(mls_cp_block_array *buffer);
 mls_error mls_cp_block_array_create(mls_cp_block_array *buffer, mls_uint capacity);
@@ -120,11 +124,40 @@ mls_bool mls_cp_block_array_is_overflow(mls_cp_block_array *buffer);
 void mls_cp_block_array_add_block(mls_cp_block_array *buffer, mls_cp_block *block);
 void mls_cp_block_array_add_item(mls_cp_block_array *buffer, mls_cp_block_array_item *item);
 
-// block-array-holder
+/**************************************
+ *  block-array-holder
+ * */
 
 void mls_cp_block_array_holder_init(mls_cp_block_array_holder *holder, mls_cp_block_array *array);
 mls_error mls_cp_block_array_holder_create(mls_cp_block_array_holder *holder, mls_uint capacity);
 void mls_cp_block_array_holder_release(mls_cp_block_array_holder *holder);
+
+/**************************************
+ * mls_cp_block_head
+ * */
+
+mls_cp_block_head *mls_cp_block_head_set_group(mls_cp_block_head *head, mls_cp_group_id group);
+mls_cp_block_head *mls_cp_block_head_set_field(mls_cp_block_head *head, mls_cp_field_id field);
+mls_cp_block_head *mls_cp_block_head_set_size(mls_cp_block_head *head, mls_cp_block_size size);
+mls_cp_block_head *mls_cp_block_head_set_type(mls_cp_block_head *head, mls_cp_block_type bt);
+
+/**************************************
+ * mls_cp_block
+ * */
+
+mls_byte mls_cp_block_get_body_byte(mls_cp_block *block);
+mls_buffer_slice mls_cp_block_get_body_bytes(mls_cp_block *block);
+mls_string mls_cp_block_get_body_string(mls_cp_block *block);
+
+mls_int8 mls_cp_block_get_body_int8(mls_cp_block *block);
+mls_int16 mls_cp_block_get_body_int16(mls_cp_block *block);
+mls_int32 mls_cp_block_get_body_int32(mls_cp_block *block);
+mls_int64 mls_cp_block_get_body_int64(mls_cp_block *block);
+
+mls_uint8 mls_cp_block_get_body_uint8(mls_cp_block *block);
+mls_uint16 mls_cp_block_get_body_uint16(mls_cp_block *block);
+mls_uint32 mls_cp_block_get_body_uint32(mls_cp_block *block);
+mls_uint64 mls_cp_block_get_body_uint64(mls_cp_block *block);
 
 /**************************************
  * mls_cp_block_reader
@@ -132,12 +165,6 @@ void mls_cp_block_array_holder_release(mls_cp_block_array_holder *holder);
 
 mls_error mls_cp_block_reader_init(mls_cp_block_reader *reader, mls_buffer *buffer);
 mls_error mls_cp_block_reader_error(mls_cp_block_reader *reader);
-
-/**************************************
- * mls_cp_block_head
- * */
-
-mls_cp_block_head *mls_cp_block_head_set_field(mls_cp_block_head *head, mls_cp_field_id field);
 
 /**************************************
  * mls_cp_block_writer

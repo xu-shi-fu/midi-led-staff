@@ -90,6 +90,7 @@ typedef struct mls_cp_server_t
 
     mls_cp_handler_registration *handlers; // ptr:指向第一个 handler
     mls_cp_handler *main;
+    mls_cp_handler *h404;
     mls_cp_share *share;
 
 } mls_cp_server;
@@ -97,6 +98,8 @@ typedef struct mls_cp_server_t
 mls_error mls_cp_server_register_handler(mls_cp_server *server, mls_cp_handler *handler);
 mls_error mls_cp_server_register_handler_reg(mls_cp_server *server, mls_cp_handler_registration *hr);
 
+mls_cp_handler *mls_cp_server_find_handler(mls_cp_context *context);
+mls_cp_handler *mls_cp_server_get_404_handler(mls_cp_context *context);
 mls_error mls_cp_server_handle(mls_cp_context *context);
 
 /*******************************************************************************

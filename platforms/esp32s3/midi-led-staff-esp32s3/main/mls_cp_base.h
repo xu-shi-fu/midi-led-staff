@@ -16,7 +16,7 @@
 
 #define MLS_CP_TYPE_NO_VALUE 0
 
-#define MLS_CP_TYPE_UINT8 0x01
+#define MLS_CP_TYPE_UINT8 0x01 // aka. MLS_CP_TYPE_BYTE
 #define MLS_CP_TYPE_UINT16 0x02
 #define MLS_CP_TYPE_UINT32 0x03
 #define MLS_CP_TYPE_UINT64 0x04
@@ -32,6 +32,7 @@
 #define MLS_CP_TYPE_BOOL 0x31
 #define MLS_CP_TYPE_STRING 0x32
 #define MLS_CP_TYPE_BYTES 0x33
+#define MLS_CP_TYPE_BYTE MLS_CP_TYPE_UINT8
 
 #define MLS_CP_TYPE_ARGB 0x41
 
@@ -55,10 +56,10 @@
 
 // cp:methods
 
-#define MLS_CP_METHOD_GET 0
-#define MLS_CP_METHOD_PUT 2
-#define MLS_CP_METHOD_POST 1
-#define MLS_CP_METHOD_DELETE 3
+#define MLS_CP_METHOD_GET 1
+#define MLS_CP_METHOD_POST 2
+#define MLS_CP_METHOD_PUT 3
+#define MLS_CP_METHOD_DELETE 4
 
 /*******************************************************************************
  * 基础类型
@@ -69,8 +70,9 @@ typedef uint8_t mls_cp_block_type; // 注意: 这个类型必须是 uint8
 typedef uint8_t mls_cp_group_id;   // 注意: 这个类型必须是 uint8
 typedef uint8_t mls_cp_field_id;   // 注意: 这个类型必须是 uint8
 
-typedef uint8_t mls_cp_method;       // 表示请求方法的 uint8
-typedef const char *mls_cp_location; // 表示请求位置的字符串
+typedef uint32_t mls_cp_transaction_id; // 表示请求事务ID的 uint32
+typedef uint8_t mls_cp_method;          // 表示请求方法的 uint8
+typedef const char *mls_cp_location;    // 表示请求位置的字符串
 
 /*******************************************************************************
  * EOF

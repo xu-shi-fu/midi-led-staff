@@ -10,6 +10,7 @@
 
 typedef char mls_bool;
 typedef unsigned char mls_byte;
+typedef const char *mls_string;
 
 typedef int mls_int;
 typedef char mls_int8;

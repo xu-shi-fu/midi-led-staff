@@ -4,7 +4,20 @@
 #include "mls_tasks.h"
 #include "mls_cp_context.h"
 
+typedef struct mls_cp_request_builder_t
+{
+
+    mls_cp_request *request;
+
+} mls_cp_request_builder;
+
+/*******************************************************************************
+ * internal functions
+ */
+
+mls_error mls_cp_h404_handler_fn(mls_cp_context *context, mls_cp_request *req);
 mls_error mls_cp_main_handler_fn(mls_cp_context *context, mls_cp_request *req);
+mls_error mls_cp_context_parse_request(mls_cp_context *context, mls_cp_request *req);
 
 mls_error mls_cp_server_module_on_init(mls_module *m);
 mls_error mls_cp_server_module_on_create(mls_module *m);
@@ -20,7 +33,12 @@ mls_error mls_cp_server_start(mls_cp_server *server);
 mls_error mls_cp_server_run_fg(mls_cp_server *server);
 mls_error mls_cp_server_run_bg(mls_cp_server *server);
 mls_error mls_cp_server_setup_main_handler(mls_cp_server *server);
+mls_error mls_cp_server_setup_h404_handler(mls_cp_server *server);
 mls_error mls_cp_server_setup_share(mls_cp_server *server);
+
+mls_error mls_cp_request_builder_init(mls_cp_request_builder *builder);
+mls_error mls_cp_request_builder_callback(mls_cp_pack_parser *, mls_cp_block *block);
+mls_error mls_cp_request_builder_on_block(mls_cp_request_builder *builder, mls_cp_block *block);
 
 /*******************************************************************************
  * mls_cp_server
@@ -50,7 +68,25 @@ mls_error mls_cp_server_create(mls_cp_server *server)
     err = mls_cp_server_setup_main_handler(server);
     mls_error_holder_push(&eh, err);
 
+    err = mls_cp_server_setup_h404_handler(server);
+    mls_error_holder_push(&eh, err);
+
     return eh.err;
+}
+
+mls_error mls_cp_server_setup_h404_handler(mls_cp_server *server)
+{
+    mls_cp_handler *handler = NULL;
+    size_t size = sizeof(handler[0]);
+    handler = malloc(size);
+    if (handler == NULL)
+    {
+        return mls_errors_make(0, "mls_cp_server_setup_h404_handler: malloc failed");
+    }
+    memset(handler, 0, size);
+    handler->fn = mls_cp_h404_handler_fn;
+    server->h404 = handler;
+    return NULL;
 }
 
 mls_error mls_cp_server_setup_main_handler(mls_cp_server *server)
@@ -133,6 +169,61 @@ mls_error mls_cp_server_run_bg(mls_cp_server *server)
 }
 
 /*******************************************************************************
+ * mls_cp_request_builder
+ */
+
+mls_error mls_cp_request_builder_callback(struct mls_cp_pack_parser_t *parser, struct mls_cp_block_t *block)
+{
+    if (parser == NULL || block == NULL)
+    {
+        return mls_errors_make(0, "mls_cp_request_builder_callback: param(s) is NULL");
+    }
+    mls_cp_request_builder *builder = parser->params;
+    if (builder == NULL)
+    {
+        return mls_errors_make(0, "mls_cp_request_builder_callback: builder is NULL");
+    }
+    return mls_cp_request_builder_on_block(builder, block);
+}
+
+mls_error mls_cp_request_builder_on_block(mls_cp_request_builder *builder, mls_cp_block *block)
+{
+    mls_cp_block_head *head = &block->head;
+    mls_cp_request *request = builder->request;
+    mls_cp_context *context = request->context;
+
+    if (head->group == MLS_CP_GROUP_COMMON)
+    {
+        switch (head->field)
+        {
+        case MLS_CP_FIELD_COMMON_METHOD:
+            request->method = mls_cp_block_get_body_uint8(block);
+            break;
+
+        case MLS_CP_FIELD_COMMON_LOCATION:
+            request->location = mls_cp_block_get_body_string(block);
+            break;
+
+        case MLS_CP_FIELD_COMMON_TRANSACTION_ID:
+            context->transaction = mls_cp_block_get_body_uint32(block);
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    return NULL;
+}
+
+mls_error mls_cp_request_builder_init(mls_cp_request_builder *builder)
+{
+    size_t size = sizeof(builder[0]);
+    memset(builder, 0, size);
+    return NULL;
+}
+
+/*******************************************************************************
  * main-handler
  */
 
@@ -150,16 +241,127 @@ mls_error mls_cp_server_handle(mls_cp_context *context)
     return err;
 }
 
+mls_cp_handler *mls_cp_server_find_handler(mls_cp_context *context)
+{
+    mls_cp_handler *handler = NULL;
+    mls_cp_handler_registration *p = NULL;
+
+    if (context == NULL)
+    {
+        return NULL;
+    }
+
+    mls_cp_server *server = context->server;
+    mls_cp_request *req = context->request;
+
+    if (server == NULL || req == NULL)
+    {
+        return NULL;
+    }
+
+    p = server->handlers;
+
+    for (; p; p = p->next)
+    {
+        mls_cp_handler *h2 = &p->handler;
+        int eq = strcmp(h2->location, req->location);
+        if ((h2->method == req->method) && (eq == 0))
+        {
+            handler = h2;
+            break;
+        }
+    }
+
+    return handler;
+}
+
+mls_cp_handler *mls_cp_server_get_404_handler(mls_cp_context *context)
+{
+    return context->server->h404;
+}
+
+mls_error mls_cp_h404_handler_fn(mls_cp_context *context, mls_cp_request *req)
+{
+    // prepare context
+
+    mls_cp_response *resp = context->response;
+    mls_cp_dispatcher *disp = context->dispatcher;
+
+    if (resp == NULL || req == NULL || disp == NULL)
+    {
+        return mls_errors_make(0, "mls_cp_h404_handler_fn: param(s) is NULL");
+    }
+
+    mls_cp_dispatcher_func fn = disp->fn;
+    if (fn == NULL)
+    {
+        return mls_errors_make(0, "mls_cp_h404_handler_fn: fn is NULL");
+    }
+
+    // make response
+
+    mls_buffer *buffer = resp->buffer;
+    mls_cp_block_writer writer;
+    mls_error err = mls_cp_block_writer_init(&writer, buffer);
+    if (err)
+    {
+        return err;
+    }
+
+    // dispatch
+
+    mls_cp_block_writer_flush(&writer);
+    resp->remote = req->remote;
+    return fn(context, resp);
+}
+
 mls_error mls_cp_main_handler_fn(mls_cp_context *context, mls_cp_request *req)
 {
-    // todo ...
-
     mls_error err;
 
+    // 1. parse request
+
+    err = mls_cp_context_parse_request(context, req);
+    if (err)
+    {
+        return err;
+    }
+
+    // 2. find handler
+
+    mls_cp_handler *handler = mls_cp_server_find_handler(context);
+    if (handler == NULL)
+    {
+        handler = mls_cp_server_get_404_handler(context);
+    }
+    if (handler == NULL)
+    {
+        return mls_errors_make(0, "mls_cp_main_handler_fn: handler is NULL");
+    }
+    mls_cp_handler_func fn = handler->fn;
+    if (fn == NULL)
+    {
+        return mls_errors_make(0, "mls_cp_main_handler_fn: handler->fn is NULL");
+    }
+
+    // 3. call handler
+
+    return fn(context, req);
+}
+
+mls_error mls_cp_context_parse_request(mls_cp_context *context, mls_cp_request *req)
+{
+    mls_error err;
     mls_cp_pack_parser parser;
+    mls_cp_request_builder builder;
+
     mls_cp_pack_parser_init(&parser);
-    parser.callback = NULL;
-    parser.params = NULL;
+    mls_cp_request_builder_init(&builder);
+
+    builder.request = req;
+
+    parser.callback = mls_cp_request_builder_callback;
+    parser.params = &builder;
 
     uint8_t *req_data = context->request->buffer->data;
     size_t req_len = context->request->buffer->size;
