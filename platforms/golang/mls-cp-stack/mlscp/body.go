@@ -408,11 +408,11 @@ func (inst *BodyString) Encoded() []byte {
 }
 
 func (inst *BodyString) Decode(src []byte) error {
-	n, err := shareDecoder.decodeString(src)
+	str, err := shareDecoder.decodeString(src)
 	if err != nil {
 		return err
 	}
-	inst.Value = n
+	inst.Value = str
 	return nil
 }
 

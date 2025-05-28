@@ -2,6 +2,7 @@
 
 #include "mls_control_protocol.h"
 #include "mls_tasks.h"
+#include "mls_common.h"
 
 #include <netinet/in.h>
 
@@ -48,6 +49,94 @@ void mls_cp_pack_builder_add_uint32(mls_cp_pack_builder *builder, mls_cp_block_h
 void mls_cp_pack_builder_add_uint64(mls_cp_pack_builder *builder, mls_cp_block_head *head, uint64_t value) {}
 void mls_cp_pack_builder_add_bytes(mls_cp_pack_builder *builder, mls_cp_block_head *head, uint8_t *data, size_t len) {}
 void mls_cp_pack_builder_add_string(mls_cp_pack_builder *builder, mls_cp_block_head *head, char *str) {}
+
+/*******************************************************************************
+ * mls_cp_checksum
+ */
+
+mls_buffer_slice *mls_cp_checksum_get_slice(mls_cp_checksum *inst);
+
+void mls_cp_checksum_init(mls_cp_checksum *inst, mls_buffer_slice *target)
+{
+    if (inst)
+    {
+        memset(inst, 0, sizeof(inst[0]));
+        if (target)
+        {
+            inst->slice = *target;
+        }
+    }
+}
+
+// 获取安全可用的 slice
+mls_buffer_slice *mls_cp_checksum_get_slice(mls_cp_checksum *inst)
+{
+    if (inst == NULL)
+    {
+        return NULL;
+    }
+    mls_buffer_slice *slice = &inst->slice;
+    if (slice)
+    {
+        const size_t min_len = 5; // sizeof(head)+sizeof(uint8)
+        void *buffer = slice->buffer;
+        size_t len = slice->length;
+        if ((buffer == NULL) || (len < min_len))
+        {
+            return NULL;
+        }
+    }
+    return slice;
+}
+
+void mls_cp_checksum_make(mls_cp_checksum *inst)
+{
+    mls_buffer_slice *slice = mls_cp_checksum_get_slice(inst);
+    if (slice == NULL)
+    {
+        return;
+    }
+
+    size_t len = slice->length;
+    mls_byte *buffer = slice->data;
+    mls_byte *end = buffer + (len - 1);
+
+    end[0] = 0;
+    mls_byte sum1 = mls_cp_checksum_compute(inst);
+    end[0] = sum1;
+    mls_byte sum2 = mls_cp_checksum_compute(inst);
+
+    ESP_LOGI(TAG, "mls_cp_checksum_make: sum1=%d, sum2=%d, len=%d", sum1, sum2, len);
+}
+
+mls_error mls_cp_checksum_verify(mls_cp_checksum *inst)
+{
+    mls_byte sum = mls_cp_checksum_compute(inst);
+    if (sum == 0)
+    {
+        return NULL;
+    }
+    return mls_errors_make(500, "mls-cp-pack: bad checksum");
+}
+
+mls_byte mls_cp_checksum_compute(mls_cp_checksum *inst)
+{
+    mls_buffer_slice *slice = mls_cp_checksum_get_slice(inst);
+    if (slice == NULL)
+    {
+        return 0;
+    }
+    size_t len = slice->length;
+    mls_byte *buffer = slice->data;
+    mls_byte sum, b;
+    sum = 0;
+    for (size_t i = 0; i < len; ++i)
+    {
+        b = buffer[i];
+        sum = sum ^ b;
+    }
+    return sum;
+}
 
 /*******************************************************************************
  * mls_cp_pack_parser

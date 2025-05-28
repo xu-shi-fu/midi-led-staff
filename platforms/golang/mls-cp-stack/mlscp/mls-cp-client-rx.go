@@ -1,6 +1,10 @@
 package mlscp
 
-import "net"
+import (
+	"net"
+
+	"github.com/starter-go/base/lang"
+)
 
 // Response 表示一个响应包
 type Response struct {
@@ -12,6 +16,7 @@ type Response struct {
 	Version Version
 	Status  int
 	Message string
+	Time    lang.Time
 }
 
 type RxFilterChain interface {

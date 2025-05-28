@@ -4,3 +4,8 @@ package vo
 type Test struct {
 	Base
 }
+
+// SimpleTest ...
+type SimpleTest struct {
+	Base
+}

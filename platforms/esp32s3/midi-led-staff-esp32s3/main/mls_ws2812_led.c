@@ -1,5 +1,6 @@
 #include "mls_ws2812_led.h"
 
+#include "mls_app.h"
 #include "mls_settings.h"
 #include "mls_errors.h"
 #include "mls_config.h"
@@ -11,11 +12,32 @@
 ////////////////////////////////////////////////////////////////////////////////
 // internal functions
 
+mls_led_module *mls_led_module_get_module(mls_module *module);
+
 mls_error mls_led_module_on_init(mls_module *module);
 mls_error mls_led_module_on_create(mls_module *module);
 mls_error mls_led_module_on_start(mls_module *module);
 
 ////////////////////////////////////////////////////////////////////////////////
+
+mls_module *mls_led_module_init(mls_led_module *m1)
+{
+    mls_module *m2 = &m1->module;
+
+    m2->name = "mls_led_module";
+    m2->on_init = mls_led_module_on_init;
+    m2->on_create = mls_led_module_on_create;
+    m2->on_start = mls_led_module_on_start;
+    m2->inner = m1;
+
+    return m2;
+}
+
+mls_led_module *mls_led_module_get_module(mls_module *module)
+{
+    mls_led_module *m1 = module->inner;
+    return m1;
+}
 
 void mls_led_init_as_demo(mls_led *led)
 {
@@ -38,18 +60,6 @@ void mls_led_init_as_demo(mls_led *led)
     }
 }
 
-mls_module *mls_led_module_init(mls_led_module *m1)
-{
-    mls_module *m2 = &m1->module;
-
-    m2->name = "mls_led_module";
-    m2->on_init = mls_led_module_on_init;
-    m2->on_create = mls_led_module_on_create;
-    m2->on_start = mls_led_module_on_start;
-
-    return m2;
-}
-
 mls_error mls_led_init(mls_led *led)
 {
     ESP_LOGI(TAG, "run mls_led_init");
@@ -58,7 +68,7 @@ mls_error mls_led_init(mls_led *led)
     return NULL;
 }
 
-mls_error mls_led_loop(mls_led *led_s)
+mls_error mls_led_loop(mls_led *led_ctx)
 {
     ESP_LOGI(TAG, "run mls_led_loop");
     ESP_LOGI(TAG, "Create RMT TX channel");
@@ -88,11 +98,11 @@ mls_error mls_led_loop(mls_led *led_s)
         .loop_count = 0, // no transfer loop
     };
 
-    SettingsAll *settings = mls_settings_get_all();
-    uint8_t *led_strip_pixels_0 = led_s->led_strip_pixels;
+    mls_settings *settings = led_ctx->settings;
+    uint8_t *led_strip_pixels_0 = led_ctx->led_strip_pixels;
     uint8_t *payload_begin = led_strip_pixels_0;
     uint8_t *payload_end = led_strip_pixels_0;
-    uint8_t *payload_max = led_strip_pixels_0 + sizeof(led_s->led_strip_pixels);
+    uint8_t *payload_max = led_strip_pixels_0 + sizeof(led_ctx->led_strip_pixels);
     size_t payload_size = 0;
     uint16_t offset = 0;
     uint16_t limit = 0;
@@ -173,6 +183,13 @@ ColorRGB mls_rgb(uint8_t r, uint8_t g, uint8_t b)
 mls_error mls_led_module_on_init(mls_module *module)
 {
     // ESP_LOGI(TAG, "mls_led_module::on_init");
+
+    mls_led_module *m2 = mls_led_module_get_module(module);
+    mls_app *app = module->app;
+    mls_settings *settings = &app->settings.settings;
+    mls_led *led = &m2->led;
+    led->settings = settings;
+
     return NULL;
 }
 

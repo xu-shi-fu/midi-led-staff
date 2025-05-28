@@ -97,6 +97,14 @@ func (inst *decoder) decodeBoolean(data []byte) (bool, error) {
 }
 
 func (inst *decoder) decodeString(data []byte) (string, error) {
+
+	iend := len(data) - 1
+	if iend >= 0 {
+		if data[iend] == 0 {
+			data = data[0:iend]
+		}
+	}
+
 	str := string(data)
 	return str, nil
 }

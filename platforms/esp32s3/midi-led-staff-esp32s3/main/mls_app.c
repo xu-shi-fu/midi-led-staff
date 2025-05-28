@@ -45,10 +45,11 @@ mls_error mls_app_enumerate_modules(mls_app *app)
     mod_nvs->enabled = YES;
     mod_settings->enabled = YES;
     mod_led->enabled = YES;
-    mod_udp->enabled = NO;
+    mod_udp->enabled = YES;
     mod_ble->enabled = NO;
     mod_cp_mock->enabled = YES;
     mod_server->enabled = YES;
+    mod_wifi->enabled = YES;
 
     // list modules
     mls_module_array *modules = &app->modules;

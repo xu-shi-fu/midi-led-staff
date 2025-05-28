@@ -36,6 +36,8 @@ typedef mls_error (*mls_cp_dispatcher_func)(struct mls_cp_context_t *context, st
 typedef struct mls_cp_dispatcher_t
 {
 
+    void *provider; // 取值由这个 dispatcher 的提供者确定
+
     mls_cp_dispatcher_func fn;
 
 } mls_cp_dispatcher;
@@ -48,6 +50,8 @@ typedef struct mls_cp_handler_t
 {
     mls_cp_method method;
     mls_cp_location location;
+
+    void *provider; // 取值由这个 handler 的提供者确定
 
     mls_cp_handler_func fn;
 
@@ -119,6 +123,9 @@ typedef struct mls_cp_server_module_t
  */
 
 mls_module *mls_cp_server_module_init(mls_cp_server_module *m1);
+
+// 把所有的 handlers 注册到 server
+mls_error mls_cp_register_all_handlers(mls_cp_server *server);
 
 /*******************************************************************************
  *  EOF

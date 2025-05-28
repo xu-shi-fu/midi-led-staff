@@ -18,7 +18,7 @@ struct mls_cp_block_entity_t;
  * 函数指针
  */
 
-typedef mls_error (*mls_cp_parser_callback_func)(struct mls_cp_pack_parser_t *, struct mls_cp_block_t *block);
+typedef mls_error (*mls_cp_parser_callback_func)(struct mls_cp_pack_parser_t *parser, struct mls_cp_block_t *block);
 
 /*******************************************************************************
  * parser
@@ -60,6 +60,22 @@ void mls_cp_pack_builder_add_uint32(mls_cp_pack_builder *builder, mls_cp_block_h
 void mls_cp_pack_builder_add_uint64(mls_cp_pack_builder *builder, mls_cp_block_head *head, uint64_t value);
 void mls_cp_pack_builder_add_bytes(mls_cp_pack_builder *builder, mls_cp_block_head *head, uint8_t *data, size_t len);
 void mls_cp_pack_builder_add_string(mls_cp_pack_builder *builder, mls_cp_block_head *head, char *str);
+
+/*******************************************************************************
+ *  mls_cp_checksum
+ */
+
+typedef struct mls_cp_checksum_t
+{
+
+    mls_buffer_slice slice;
+
+} mls_cp_checksum;
+
+void mls_cp_checksum_init(mls_cp_checksum *inst, mls_buffer_slice *target);
+void mls_cp_checksum_make(mls_cp_checksum *inst);
+mls_byte mls_cp_checksum_compute(mls_cp_checksum *inst);
+mls_error mls_cp_checksum_verify(mls_cp_checksum *inst);
 
 /*******************************************************************************
  *  EOF

@@ -64,7 +64,7 @@ func (inst *ConnectionController) handleGetConnect(c *gin.Context) {
 		wantRequestBody:  false,
 		wantRequestQuery: true,
 	}
-	req.execute(req.doGet)
+	req.execute(req.doConnect)
 }
 
 func (inst *ConnectionController) handlePostConnect(c *gin.Context) {

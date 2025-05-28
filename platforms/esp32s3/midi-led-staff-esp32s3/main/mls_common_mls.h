@@ -9,4 +9,7 @@
 
 extern const char *TAG;
 
+#define MLS_MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MLS_MAX(a, b) (((a) > (b)) ? (a) : (b))
+
 #endif // __common_mls_h__

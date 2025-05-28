@@ -11,9 +11,6 @@ type FieldID uint8
 // 例如: 0x01 0x02, 表示版本号为 1.2
 type Version uint16
 
-// Method 表示一个请求的方法, 它通常是一个 HTTP 方法, 例如 GET, POST, PUT, DELETE 等
-type Method uint8
-
 // Location 表示一个请求的目标位置, 它通常是一个绝对路径, 例如 '/test/ping'
 type Location string
 
@@ -44,23 +41,26 @@ const (
 )
 
 const (
-	GroupCommon = 0
-	GroupSystem = 1
-	GroupMIDI   = 2
-	GroupLED    = 3
+	GroupCommon GroupID = 0
+	GroupSystem GroupID = 1
+	GroupMIDI   GroupID = 2
+	GroupLED    GroupID = 3
 
-	GroupExMin = 128
-	GroupExMax = 255
+	GroupExMin GroupID = 128
+	GroupExMax GroupID = 255
 )
 
 const (
+	FieldCommonEOP = 0 // EOP+奇偶校验:uint8 (aka. End-of-Pack aka. check-sum)
+
 	FieldCommonMethod        = 1 // 请求方法:uint8
 	FieldCommonLocation      = 2 // 请求位置:string
 	FieldCommonVersion       = 3 // 协议版本:uint16 (8bits_x2)
 	FieldCommonStatusCode    = 4 // 状态码:uint16
 	FieldCommonStatusMessage = 5 // 状态消息:string
 	FieldCommonTransactionID = 6 // 事务ID:uint32
-	FieldCommonCheckSum      = 7 // 奇偶校验:uint8
+	FieldCommonTimestamp     = 8 // 时间戳:int64
+
 )
 
 const (
@@ -98,6 +98,13 @@ type BlockHead struct {
 type BlockEntity struct {
 	Head BlockHead
 	Body BlockBody
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Location
+
+func (l Location) String() string {
+	return string(l)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

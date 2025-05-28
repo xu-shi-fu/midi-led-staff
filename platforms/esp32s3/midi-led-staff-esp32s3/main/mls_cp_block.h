@@ -117,8 +117,9 @@ void mls_cp_block_array_entity_release(mls_cp_block_array_entity *entity);
  * */
 
 void mls_cp_block_array_init(mls_cp_block_array *buffer);
-mls_error mls_cp_block_array_create(mls_cp_block_array *buffer, mls_uint capacity);
 void mls_cp_block_array_reset(mls_cp_block_array *buffer);
+void mls_cp_block_array_log_all(mls_cp_block_array *array);
+mls_error mls_cp_block_array_create(mls_cp_block_array *buffer, mls_uint capacity);
 mls_bool mls_cp_block_array_is_overflow(mls_cp_block_array *buffer);
 
 void mls_cp_block_array_add_block(mls_cp_block_array *buffer, mls_cp_block *block);
@@ -179,8 +180,9 @@ void mls_cp_block_writer_write_block(mls_cp_block_writer *writer, mls_cp_block_h
 void mls_cp_block_writer_write_block_head(mls_cp_block_writer *writer, mls_cp_block_head *head);
 
 void mls_cp_block_writer_write_byte(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_byte b);
-void mls_cp_block_writer_write_bytes(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_byte *data_ptr, size_t data_len);
-void mls_cp_block_writer_write_string(mls_cp_block_writer *writer, mls_cp_block_head *head, const char *str);
+void mls_cp_block_writer_write_bytes(mls_cp_block_writer *writer, mls_cp_block_head *head, const mls_byte *data_ptr, size_t data_len);
+void mls_cp_block_writer_write_string(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_string str);
+void mls_cp_block_writer_write_argb(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_argb argb);
 
 void mls_cp_block_writer_write_uint8(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_uint8 n);
 void mls_cp_block_writer_write_uint16(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_uint16 n);

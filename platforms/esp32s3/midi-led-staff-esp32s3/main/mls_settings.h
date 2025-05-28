@@ -7,51 +7,70 @@
 #include "mls_errors.h"
 #include "mls_module.h"
 
-typedef struct
-{
-} SettingsWifi;
+////////////////////////////////////////////////////////////////////////////////
+// settings for modules
 
-typedef struct
+typedef struct mls_settings_wifi_t
 {
-} SettingsBLE;
+} mls_settings_wifi;
 
-typedef struct
+typedef struct mls_settings_ble_t
 {
-} SettingsMIDI;
+} mls_settings_ble;
 
-typedef struct
+typedef struct mls_settings_udp_t
+{
+    mls_uint16 port;
+
+} mls_settings_udp;
+
+typedef struct mls_settings_midi_t
+{
+} mls_settings_midi;
+
+typedef struct mls_settings_led_t
 {
 
     uint8_t output_offset; // 需要输出的的位置
     uint8_t output_limit;  // 需要输出的个数
 
-} SettingsLED;
+} mls_settings_led;
 
-typedef struct
+////////////////////////////////////////////////////////////////////////////////
+// settings
+
+typedef struct mls_settings_t
 {
-    SettingsLED led;
+    mls_settings_led led;
 
-    SettingsWifi wifi;
+    mls_settings_wifi wifi;
 
-    SettingsBLE ble;
+    mls_settings_udp udp;
 
-    SettingsMIDI midi;
+    mls_settings_ble ble;
 
-} SettingsAll;
+    mls_settings_midi midi;
+
+} mls_settings;
+
+////////////////////////////////////////////////////////////////////////////////
+// module
 
 typedef struct mls_settings_module_t
 {
     mls_module module;
 
+    mls_settings settings;
+
 } mls_settings_module;
 
 ////////////////////////////////////////////////////////////////////////////////
+// functions
 
 mls_module *mls_settings_module_init(mls_settings_module *m1);
 
 // void mls_settings_init();
 // void mls_settings_loop();
-
-SettingsAll *mls_settings_get_all();
+// SettingsAll *mls_settings_get_all();
 
 #endif // __settings_h__

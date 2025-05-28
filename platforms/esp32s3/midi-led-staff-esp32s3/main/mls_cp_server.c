@@ -4,12 +4,12 @@
 #include "mls_tasks.h"
 #include "mls_cp_context.h"
 
-typedef struct mls_cp_request_builder_t
+typedef struct mls_cp_request_parser_callback_t
 {
 
     mls_cp_request *request;
 
-} mls_cp_request_builder;
+} mls_cp_request_parser_callback; // rename: mls__cp_request_builder -> mls_cp_request_parser_callback
 
 /*******************************************************************************
  * internal functions
@@ -18,6 +18,7 @@ typedef struct mls_cp_request_builder_t
 mls_error mls_cp_h404_handler_fn(mls_cp_context *context, mls_cp_request *req);
 mls_error mls_cp_main_handler_fn(mls_cp_context *context, mls_cp_request *req);
 mls_error mls_cp_context_parse_request(mls_cp_context *context, mls_cp_request *req);
+mls_error mls_cp_context_verify_request(mls_cp_context *context, mls_cp_request *req);
 
 mls_error mls_cp_server_module_on_init(mls_module *m);
 mls_error mls_cp_server_module_on_create(mls_module *m);
@@ -36,9 +37,9 @@ mls_error mls_cp_server_setup_main_handler(mls_cp_server *server);
 mls_error mls_cp_server_setup_h404_handler(mls_cp_server *server);
 mls_error mls_cp_server_setup_share(mls_cp_server *server);
 
-mls_error mls_cp_request_builder_init(mls_cp_request_builder *builder);
-mls_error mls_cp_request_builder_callback(mls_cp_pack_parser *, mls_cp_block *block);
-mls_error mls_cp_request_builder_on_block(mls_cp_request_builder *builder, mls_cp_block *block);
+mls_error mls_cp_request_parser_callback_fn(mls_cp_pack_parser *, mls_cp_block *block);
+mls_error mls_cp_request_parser_callback_init(mls_cp_request_parser_callback *builder);
+mls_error mls_cp_request_parser_callback_on_block(mls_cp_request_parser_callback *builder, mls_cp_block *block);
 
 /*******************************************************************************
  * mls_cp_server
@@ -71,7 +72,10 @@ mls_error mls_cp_server_create(mls_cp_server *server)
     err = mls_cp_server_setup_h404_handler(server);
     mls_error_holder_push(&eh, err);
 
-    return eh.err;
+    err = mls_cp_register_all_handlers(server);
+    mls_error_holder_push(&eh, err);
+
+    return mls_error_holder_get_error(&eh);
 }
 
 mls_error mls_cp_server_setup_h404_handler(mls_cp_server *server)
@@ -169,28 +173,33 @@ mls_error mls_cp_server_run_bg(mls_cp_server *server)
 }
 
 /*******************************************************************************
- * mls_cp_request_builder
+ * mls_cp_request_parser_callback
  */
 
-mls_error mls_cp_request_builder_callback(struct mls_cp_pack_parser_t *parser, struct mls_cp_block_t *block)
+mls_error mls_cp_request_parser_callback_fn(struct mls_cp_pack_parser_t *parser, struct mls_cp_block_t *block)
 {
+    // ESP_LOGI(TAG, "parse...");
+
     if (parser == NULL || block == NULL)
     {
-        return mls_errors_make(0, "mls_cp_request_builder_callback: param(s) is NULL");
+        return mls_errors_make(0, "mls_cp_request_parser_callback_callback: param(s) is NULL");
     }
-    mls_cp_request_builder *builder = parser->params;
+    mls_cp_request_parser_callback *builder = parser->params;
     if (builder == NULL)
     {
-        return mls_errors_make(0, "mls_cp_request_builder_callback: builder is NULL");
+        return mls_errors_make(0, "mls_cp_request_parser_callback_callback: builder is NULL");
     }
-    return mls_cp_request_builder_on_block(builder, block);
+    return mls_cp_request_parser_callback_on_block(builder, block);
 }
 
-mls_error mls_cp_request_builder_on_block(mls_cp_request_builder *builder, mls_cp_block *block)
+mls_error mls_cp_request_parser_callback_on_block(mls_cp_request_parser_callback *builder, mls_cp_block *block)
 {
     mls_cp_block_head *head = &block->head;
     mls_cp_request *request = builder->request;
     mls_cp_context *context = request->context;
+    mls_cp_block_array *blocks = request->blocks;
+
+    mls_cp_block_array_add_block(blocks, block);
 
     if (head->group == MLS_CP_GROUP_COMMON)
     {
@@ -208,6 +217,10 @@ mls_error mls_cp_request_builder_on_block(mls_cp_request_builder *builder, mls_c
             context->transaction = mls_cp_block_get_body_uint32(block);
             break;
 
+        case MLS_CP_FIELD_COMMON_TIMESTAMP:
+            request->timestamp = mls_cp_block_get_body_int64(block);
+            break;
+
         default:
             break;
         }
@@ -216,7 +229,7 @@ mls_error mls_cp_request_builder_on_block(mls_cp_request_builder *builder, mls_c
     return NULL;
 }
 
-mls_error mls_cp_request_builder_init(mls_cp_request_builder *builder)
+mls_error mls_cp_request_parser_callback_init(mls_cp_request_parser_callback *builder)
 {
     size_t size = sizeof(builder[0]);
     memset(builder, 0, size);
@@ -282,37 +295,18 @@ mls_cp_handler *mls_cp_server_get_404_handler(mls_cp_context *context)
 
 mls_error mls_cp_h404_handler_fn(mls_cp_context *context, mls_cp_request *req)
 {
-    // prepare context
-
-    mls_cp_response *resp = context->response;
-    mls_cp_dispatcher *disp = context->dispatcher;
-
-    if (resp == NULL || req == NULL || disp == NULL)
-    {
-        return mls_errors_make(0, "mls_cp_h404_handler_fn: param(s) is NULL");
-    }
-
-    mls_cp_dispatcher_func fn = disp->fn;
-    if (fn == NULL)
-    {
-        return mls_errors_make(0, "mls_cp_h404_handler_fn: fn is NULL");
-    }
-
-    // make response
-
-    mls_buffer *buffer = resp->buffer;
-    mls_cp_block_writer writer;
-    mls_error err = mls_cp_block_writer_init(&writer, buffer);
+    mls_cp_response_builder builder;
+    mls_error err = mls_cp_response_builder_init_with_context(&builder, context);
     if (err)
     {
         return err;
     }
 
-    // dispatch
+    mls_cp_status_code code = MLS_CP_STATUS_NOT_FOUND;
+    builder.status.code = code;
+    builder.status.message = mls_cp_status_stringify(code);
 
-    mls_cp_block_writer_flush(&writer);
-    resp->remote = req->remote;
-    return fn(context, resp);
+    return mls_cp_response_builder_build_and_send(&builder, context);
 }
 
 mls_error mls_cp_main_handler_fn(mls_cp_context *context, mls_cp_request *req)
@@ -322,6 +316,15 @@ mls_error mls_cp_main_handler_fn(mls_cp_context *context, mls_cp_request *req)
     // 1. parse request
 
     err = mls_cp_context_parse_request(context, req);
+    if (err)
+    {
+        return err;
+    }
+
+    mls_cp_block_array_log_all(req->blocks);
+
+    // 1.5 verify request
+    err = mls_cp_context_verify_request(context, req);
     if (err)
     {
         return err;
@@ -343,24 +346,39 @@ mls_error mls_cp_main_handler_fn(mls_cp_context *context, mls_cp_request *req)
     {
         return mls_errors_make(0, "mls_cp_main_handler_fn: handler->fn is NULL");
     }
+    context->handler = handler;
 
     // 3. call handler
 
     return fn(context, req);
 }
 
+mls_error mls_cp_context_verify_request(mls_cp_context *context, mls_cp_request *req)
+{
+
+    mls_cp_location location = req->location;
+    if (location == NULL)
+    {
+        return mls_errors_make(0, "mls_cp_context_verify_request: location is NULL");
+    }
+
+    // todo: check-sum
+
+    return NULL;
+}
+
 mls_error mls_cp_context_parse_request(mls_cp_context *context, mls_cp_request *req)
 {
     mls_error err;
     mls_cp_pack_parser parser;
-    mls_cp_request_builder builder;
+    mls_cp_request_parser_callback builder;
 
     mls_cp_pack_parser_init(&parser);
-    mls_cp_request_builder_init(&builder);
+    mls_cp_request_parser_callback_init(&builder);
 
     builder.request = req;
 
-    parser.callback = mls_cp_request_builder_callback;
+    parser.callback = mls_cp_request_parser_callback_fn;
     parser.params = &builder;
 
     uint8_t *req_data = context->request->buffer->data;

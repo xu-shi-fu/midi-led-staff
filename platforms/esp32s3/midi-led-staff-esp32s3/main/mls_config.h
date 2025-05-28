@@ -1,7 +1,7 @@
-// config.h
+// mls_config.h
 
-#ifndef __config_h__
-#define __config_h__
+#ifndef __mls_config_h__
+#define __mls_config_h__
 
 #define mls_ENABLE_TUSB_MIDI 0 // 0='no';1='yes'
 
@@ -12,4 +12,7 @@
 #define CP_RX_BLOCK_ARRAY_CAPACITY 16
 #define CP_TX_BLOCK_ARRAY_CAPACITY 16
 
-#endif // __config_h__
+#define CP_VERSION_MAJOR 1
+#define CP_VERSION_MINOR 0
+
+#endif // __mls_config_h__

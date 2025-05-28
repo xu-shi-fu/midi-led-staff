@@ -1,19 +1,6 @@
 package mlscp
 
-const (
-
-	// MethodGet 表示一个 GET 请求
-	MethodGet Method = 1
-
-	// MethodPost 表示一个 POST 请求
-	MethodPost = 2
-
-	// MethodPut 表示一个 PUT 请求
-	MethodPut = 3
-
-	// MethodDelete 表示一个 DELETE 请求
-	MethodDelete = 4
-)
+import "github.com/starter-go/base/lang"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +9,7 @@ type Request struct {
 	Version  Version
 	Method   Method
 	Location Location
+	Time     lang.Time
 
 	Context *TransactionContext
 	Blocks  []*BlockEntity
@@ -74,11 +62,18 @@ func (inst *RequestBuilder) Group(g GroupID) *RequestBuilder {
 
 func (inst *RequestBuilder) Build() *Request {
 
+	now := lang.Now()
+
 	req := &Request{
 		Method:   inst.method,
 		Location: inst.location,
 		Context:  inst.context,
+		Time:     now,
 	}
+
+	// inst.AddFieldUint8(FieldCommonMethod, req.Method.UINT())
+	// inst.AddFieldString(FieldCommonLocation, req.Location.String())
+	// req.Blocks = inst.blocks
 
 	return req
 }

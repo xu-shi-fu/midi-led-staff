@@ -8,43 +8,8 @@
 #include "mls_api.h"
 #include "mls_control_protocol.h"
 #include "mls_cp_address.h"
-
-struct mls_cp_context_t;
-struct mls_cp_request_t;
-struct mls_cp_response_t;
-
-/*******************************************************************************
- *  request
- */
-
-typedef struct mls_cp_request_t
-{
-    struct mls_cp_context_t *context;
-
-    mls_cp_address remote;
-
-    mls_cp_method method;
-    mls_cp_location location;
-
-    mls_buffer *buffer;
-    mls_cp_block_array *blocks;
-
-} mls_cp_request;
-
-/*******************************************************************************
- *  response
- */
-
-typedef struct mls_cp_response_t
-{
-    struct mls_cp_context_t *context;
-
-    mls_cp_address remote;
-
-    mls_buffer *buffer;
-    mls_cp_block_array *blocks;
-
-} mls_cp_response;
+#include "mls_cp_request.h"
+#include "mls_cp_response.h"
 
 // mls_cp_implementation 是抽象的控制协议上下文实现
 typedef struct mls_cp_implementation_t
@@ -54,10 +19,6 @@ typedef struct mls_cp_implementation_t
     void *outer; // 指向具体实现的结构
 
 } mls_cp_implementation;
-
-/*******************************************************************************
- *  context
- */
 
 // mls_cp_context 是抽象的控制协议上下文
 typedef struct mls_cp_context_t

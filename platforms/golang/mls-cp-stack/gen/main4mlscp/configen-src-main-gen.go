@@ -220,3 +220,53 @@ func (inst*p9a99ad5d30_controllers_ExampleController) getResponder(ie applicatio
 }
 
 
+
+// type p9a99ad5d3.SimpleTestController in package:github.com/xu-shi-fu/midi-led-staff/platforms/golang/mls-cp-stack/app/web/controllers
+//
+// id:com-9a99ad5d3031ef6f-controllers-SimpleTestController
+// class:class-d1a916a203352fd5d33eabc36896b42e-Controller
+// alias:
+// scope:singleton
+//
+type p9a99ad5d30_controllers_SimpleTestController struct {
+}
+
+func (inst* p9a99ad5d30_controllers_SimpleTestController) register(cr application.ComponentRegistry) error {
+	r := cr.NewRegistration()
+	r.ID = "com-9a99ad5d3031ef6f-controllers-SimpleTestController"
+	r.Classes = "class-d1a916a203352fd5d33eabc36896b42e-Controller"
+	r.Aliases = ""
+	r.Scope = "singleton"
+	r.NewFunc = inst.new
+	r.InjectFunc = inst.inject
+	return r.Commit()
+}
+
+func (inst* p9a99ad5d30_controllers_SimpleTestController) new() any {
+    return &p9a99ad5d3.SimpleTestController{}
+}
+
+func (inst* p9a99ad5d30_controllers_SimpleTestController) inject(injext application.InjectionExt, instance any) error {
+	ie := injext
+	com := instance.(*p9a99ad5d3.SimpleTestController)
+	nop(ie, com)
+
+	
+    com.Responder = inst.getResponder(ie)
+    com.TestService = inst.getTestService(ie)
+
+
+    return nil
+}
+
+
+func (inst*p9a99ad5d30_controllers_SimpleTestController) getResponder(ie application.InjectionExt)pd1a916a20.Responder{
+    return ie.GetComponent("#alias-d1a916a203352fd5d33eabc36896b42e-Responder").(pd1a916a20.Responder)
+}
+
+
+func (inst*p9a99ad5d30_controllers_SimpleTestController) getTestService(ie application.InjectionExt)p1e554a92e.TestService{
+    return ie.GetComponent("#alias-1e554a92e02558d082d6cfb8b5a85f00-TestService").(p1e554a92e.TestService)
+}
+
+

@@ -3,7 +3,8 @@
 #ifndef __ws2812_led_h__
 #define __ws2812_led_h__
 
-#include "mls_common.h"
+#include "mls_common_mls.h"
+#include "mls_api.h"
 #include "led_strip_encoder.h"
 #include "mls_errors.h"
 #include "mls_module.h"
@@ -23,6 +24,8 @@ typedef struct
 typedef struct
 {
 
+    struct mls_settings_t *settings;
+
     uint8_t led_strip_pixels[MLS_LED_NUMBERS * 3];
 
 } mls_led;
@@ -30,6 +33,8 @@ typedef struct
 typedef struct mls_led_module_t
 {
     mls_module module;
+
+    mls_led led;
 
 } mls_led_module;
 

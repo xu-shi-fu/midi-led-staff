@@ -1,6 +1,7 @@
 #include "mls_cp_mock_adapter.h"
 
 #include "mls_app.h"
+#include "mls_common.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // struct
@@ -64,8 +65,26 @@ mls_module *mls_cp_mock_module_init(mls_cp_mock_module *m1)
 
 mls_error mls_cp_mock_module_dispatcher_func(struct mls_cp_context_t *context, struct mls_cp_response_t *resp)
 {
-
     ESP_LOGI(TAG, "mls_cp_mock_module_dispatcher_func:  send response ... ");
+
+    mls_cp_status status = resp->status;
+    mls_buffer *buffer = resp->buffer;
+    mls_cp_block_array *blocks = resp->blocks;
+
+    int tid = context->transaction;
+    int len = buffer->size;
+    int code = status.code;
+    const char *msg = status.message;
+
+    if (msg == NULL)
+    {
+        msg = "[nil]";
+    }
+
+    ESP_LOGI(TAG, "dispatch [response length:%d tid:%d code:%d msg:%s]", len, tid, code, msg);
+
+    mls_cp_block_array_log_all(blocks);
+
     return NULL;
 }
 
@@ -230,22 +249,31 @@ mls_error mls_cp_mock_adapter_run_test1(mls_cp_mock_adapter *adapter)
 {
     mls_cp_context *ctx = &adapter->context;
     mls_buffer *buffer = ctx->request->buffer;
-    mls_cp_block_writer writer;
-    mls_cp_block_head head;
 
-    mls_buffer_reset(buffer);
-    mls_cp_block_writer_init(&writer, buffer);
+    // mls_cp_block_writer writer;
+    // mls_cp_block_head head;
+    ////  v2
 
-    head.group = MLS_CP_GROUP_COMMON;
-    mls_byte method = MLS_CP_METHOD_GET;
-    const char *location = "/foo/bar";
-    mls_uint32 trans_id = 2233;
+    mls_cp_group_id group;
+    mls_cp_request_builder builder;
+    mls_cp_request_builder_init(&builder, buffer);
 
-    mls_cp_block_writer_write_uint8(&writer, mls_cp_block_head_set_field(&head, MLS_CP_FIELD_COMMON_METHOD), method);
-    mls_cp_block_writer_write_string(&writer, mls_cp_block_head_set_field(&head, MLS_CP_FIELD_COMMON_LOCATION), location);
-    mls_cp_block_writer_write_uint32(&writer, mls_cp_block_head_set_field(&head, MLS_CP_FIELD_COMMON_TRANSACTION_ID), trans_id);
+    builder.method = MLS_CP_METHOD_GET;
+    builder.location = "/foo/bar-404";
+    builder.transaction = 2233;
 
-    mls_cp_block_writer_flush(&writer);
+    group = MLS_CP_GROUP_EXAMPLE;
+    mls_cp_request_builder_add_string(&builder, group, MLS_CP_FIELD_EXAMPLE_FOO, "foo");
+    mls_cp_request_builder_add_int32(&builder, group, MLS_CP_FIELD_EXAMPLE_BAR, 666);
+
+    mls_buffer_slice slice = mls_cp_request_builder_build(&builder);
+    mls_error err = mls_cp_request_builder_get_error(&builder);
+    if (err)
+    {
+        return err;
+    }
+
+    ESP_LOGI(TAG, "mls_cp_request_builder_build: slice.length=%d", slice.length);
 
     return mls_cp_server_handle(ctx);
 }

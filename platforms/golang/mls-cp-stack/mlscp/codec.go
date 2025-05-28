@@ -3,7 +3,40 @@ package mlscp
 import (
 	"bytes"
 	"fmt"
+
+	"github.com/starter-go/base/lang"
 )
+
+////////////////////////////////////////////////////////////////////////////////
+// checksum
+
+type checksum struct{}
+
+func (inst *checksum) compute(data []byte) uint8 {
+	var sum uint8
+	sum = 0
+	for _, b := range data {
+		sum = sum ^ b
+	}
+	return sum
+}
+
+func (inst *checksum) verify(data []byte) error {
+	sum := inst.compute(data)
+	if sum != 0 {
+		return fmt.Errorf("mlscp: bad checksum")
+	}
+	return nil
+}
+
+func (inst *checksum) make(data []byte) {
+	iend := len(data) - 1
+	if iend > 0 {
+		data[iend] = 0
+		sum := inst.compute(data)
+		data[iend] = sum
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Encoder
@@ -147,11 +180,12 @@ func (inst *Encoder) encodeString(b *BlockEntity, dst *bytes.Buffer) error {
 	head := &b.Head
 	body := b.Body.(*BodyString)
 	str := body.Value
-	data := []byte(str)
+	data := []byte(str + "e")
 
 	bodySize := len(data)
 	inst.encodeBlockHead(head, bodySize, dst)
 
+	data[bodySize-1] = 0
 	return inst.inner.encodeString(data, dst)
 }
 
@@ -212,6 +246,7 @@ func (inst *Encoder) EncodeBlock(b *BlockEntity, dst *bytes.Buffer) error {
 }
 
 func (inst *Encoder) EncodeBlockList(list []*BlockEntity) ([]byte, error) {
+
 	builder := bytes.NewBuffer(nil)
 	for _, item := range list {
 		err := inst.EncodeBlock(item, builder)
@@ -219,15 +254,18 @@ func (inst *Encoder) EncodeBlockList(list []*BlockEntity) ([]byte, error) {
 			return nil, err
 		}
 	}
-	return builder.Bytes(), nil
+	data := builder.Bytes()
+	return data, nil
 }
 
 func (inst *Encoder) EncodeRequest(req *Request) ([]byte, error) {
 
 	method := inst.makeBlockOfRequestMethod(req.Method)
 	location := inst.makeBlockOfRequestLocation(req.Location)
+	time := inst.makeBlockOfTimestamp(req.Time)
 	tid := inst.makeBlockOfRequestTID(req.Context.TransactionID)
 	ver := inst.makeBlockOfRequestVersion(req.Version)
+	eop := inst.makeBlockEndOfPack()
 
 	all := req.Blocks
 
@@ -235,8 +273,34 @@ func (inst *Encoder) EncodeRequest(req *Request) ([]byte, error) {
 	all = append(all, tid)
 	all = append(all, location)
 	all = append(all, ver)
+	all = append(all, time)
+	all = append(all, eop)
 
-	return inst.EncodeBlockList(all)
+	data, err := inst.EncodeBlockList(all)
+	if err != nil {
+		return nil, err
+	}
+
+	var cs checksum
+	cs.make(data)
+
+	return data, nil
+}
+
+func (inst *Encoder) makeBlockEndOfPack() *BlockEntity {
+
+	body := &BodyUint8{}
+	body.Value = 0
+
+	entity := &BlockEntity{}
+	entity.Head.Size = 0
+	entity.Head.Type = TypeUint8
+	entity.Head.Group = GroupCommon
+	entity.Head.Field = FieldCommonEOP
+	entity.Body = body
+
+	return entity
+
 }
 
 func (inst *Encoder) makeBlockOfRequestVersion(value Version) *BlockEntity {
@@ -264,6 +328,21 @@ func (inst *Encoder) makeBlockOfRequestMethod(value Method) *BlockEntity {
 	entity.Head.Type = TypeUint8
 	entity.Head.Group = GroupCommon
 	entity.Head.Field = FieldCommonMethod
+	entity.Body = body
+
+	return entity
+}
+
+func (inst *Encoder) makeBlockOfTimestamp(value lang.Time) *BlockEntity {
+
+	body := &BodyInt64{}
+	body.Value = value.Int()
+
+	entity := &BlockEntity{}
+	entity.Head.Size = 0
+	entity.Head.Type = TypeInt64
+	entity.Head.Group = GroupCommon
+	entity.Head.Field = FieldCommonTimestamp
 	entity.Body = body
 
 	return entity
