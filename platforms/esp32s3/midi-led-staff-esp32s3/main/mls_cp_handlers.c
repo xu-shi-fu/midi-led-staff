@@ -8,6 +8,8 @@ mls_error mls_cp_register_handler(mls_cp_server *server, mls_cp_method method, m
 
 mls_error mls_simple_cp_handlers_ping(mls_cp_context *ctx, mls_cp_request *req);
 mls_error mls_simple_cp_handlers_example(mls_cp_context *ctx, mls_cp_request *req);
+mls_error mls_simple_cp_handlers_leds_get(mls_cp_context *ctx, mls_cp_request *req);
+mls_error mls_simple_cp_handlers_leds_post(mls_cp_context *ctx, mls_cp_request *req);
 
 ////////////////////////////////////////////////////////////////////////////////
 // simple-handlers
@@ -31,6 +33,14 @@ mls_error mls_simple_cp_handlers_ping(mls_cp_context *ctx, mls_cp_request *req)
 mls_error mls_simple_cp_handlers_example(mls_cp_context *ctx, mls_cp_request *req)
 {
     return NULL;
+}
+
+mls_error mls_simple_cp_handlers_leds_get(mls_cp_context *ctx, mls_cp_request *req)
+{
+}
+
+mls_error mls_simple_cp_handlers_leds_post(mls_cp_context *ctx, mls_cp_request *req)
+{
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -60,10 +70,15 @@ mls_error mls_cp_register_all_handlers(mls_cp_server *server)
     mls_error_holder eh;
     mls_error_holder_init(&eh);
 
-    err = mls_cp_register_handler(server, MLS_CP_METHOD_GET, "/foo/bar", mls_simple_cp_handlers_example);
+    err = mls_cp_register_handler(server, MLS_CP_METHOD_GET, MLS_CP_LOCATION_FOO_BAR, mls_simple_cp_handlers_example);
     mls_error_holder_push(&eh, err);
 
-    err = mls_cp_register_handler(server, MLS_CP_METHOD_GET, "/ping", mls_simple_cp_handlers_ping);
+    err = mls_cp_register_handler(server, MLS_CP_METHOD_GET, MLS_CP_LOCATION_PING, mls_simple_cp_handlers_ping);
+    mls_error_holder_push(&eh, err);
+
+    err = mls_cp_register_handler(server, MLS_CP_METHOD_GET, MLS_CP_LOCATION_LEDS, mls_simple_cp_handlers_leds_get);
+    mls_error_holder_push(&eh, err);
+    err = mls_cp_register_handler(server, MLS_CP_METHOD_POST, MLS_CP_LOCATION_LEDS, mls_simple_cp_handlers_leds_post);
     mls_error_holder_push(&eh, err);
 
     return mls_error_holder_get_error(&eh);

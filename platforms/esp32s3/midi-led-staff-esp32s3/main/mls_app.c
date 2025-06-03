@@ -50,6 +50,7 @@ mls_error mls_app_enumerate_modules(mls_app *app)
     mod_cp_mock->enabled = YES;
     mod_server->enabled = YES;
     mod_wifi->enabled = YES;
+    mod_engine->enabled = YES;
 
     // list modules
     mls_module_array *modules = &app->modules;

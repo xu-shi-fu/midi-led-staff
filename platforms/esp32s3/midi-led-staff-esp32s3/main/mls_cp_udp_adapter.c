@@ -299,6 +299,7 @@ mls_error mls_cp_udp_adapter_run_task(mls_cp_udp_adapter *adapter, bool infinity
         return err;
     }
 
+    // receive loop
     do
     {
         if (err)
@@ -356,6 +357,7 @@ mls_error mls_cp_udp_adapter_sock_bind(mls_cp_udp_adapter *adapter)
         return mls_errors_make(0, "udp bind error");
     }
 
+    ESP_LOGI(TAG, "mls_cp_udp_adapter_sock_bind: listen UDP at %s:%d", host, port);
     return NULL;
 }
 

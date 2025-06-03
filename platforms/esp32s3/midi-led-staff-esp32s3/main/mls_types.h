@@ -25,5 +25,6 @@ typedef unsigned char mls_byte;
 typedef const char *mls_string;
 
 typedef mls_int64 mls_timestamp;
+typedef mls_uint mls_revision;
 
 #endif // __mls_types_h__

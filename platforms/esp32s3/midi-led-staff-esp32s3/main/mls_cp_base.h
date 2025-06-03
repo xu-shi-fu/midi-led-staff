@@ -82,6 +82,19 @@
 #define MLS_CP_METHOD_DELETE 4
 
 /*******************************************************************************
+ * locations
+ */
+
+#define MLS_CP_LOCATION_EXAMPLE "/example"
+#define MLS_CP_LOCATION_FOO_BAR "/foo/bar"
+#define MLS_CP_LOCATION_PING "/ping"
+#define MLS_CP_LOCATION_LEDS "/leds"
+#define MLS_CP_LOCATION_KEYS "/keys"
+#define MLS_CP_LOCATION_STYLES "/styles"
+#define MLS_CP_LOCATION_SETTINGS "/settings"
+#define MLS_CP_LOCATION_MODES "/modes"
+
+/*******************************************************************************
  * statuses
  */
 

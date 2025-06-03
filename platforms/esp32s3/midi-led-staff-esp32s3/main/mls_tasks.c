@@ -6,7 +6,12 @@
 
 void mls_sleep(uint32_t ms)
 {
-    vTaskDelay(ms / portTICK_PERIOD_MS);
+    mls_int32 ticks = ms / portTICK_PERIOD_MS;
+    if (ticks < 1)
+    {
+        ticks = 1;
+    }
+    vTaskDelay(ticks);
 }
 
 void mls_tasks_run_idle_loop()

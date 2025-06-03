@@ -32,6 +32,7 @@ typedef struct mls_cp_context_t
     struct mls_cp_handler_t *handler;
     struct mls_cp_server_t *server;
     struct mls_cp_implementation_t *implementation;
+    struct mls_app_t *app;
 
 } mls_cp_context;
 
