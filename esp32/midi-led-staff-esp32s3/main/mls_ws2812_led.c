@@ -10,6 +10,15 @@
 #define RMT_LED_STRIP_RESOLUTION_HZ 10000000 // 10MHz resolution, 1 tick = 0.1us (led strip needs a high resolution)
 #define EXAMPLE_CHASE_SPEED_MS 2             // 每个刷新周期中, delay 的时长, 单位是 ms
 
+typedef struct rmt_working_context_t
+{
+
+    rmt_channel_handle_t channel;
+    rmt_encoder_handle_t encoder;
+    rmt_transmit_config_t *config;
+
+} rmt_working_context;
+
 ////////////////////////////////////////////////////////////////////////////////
 // internal functions
 
@@ -26,8 +35,14 @@ mls_error mls_led_init(mls_led_context *ctx, mls_app *app);
 mls_error mls_led_create(mls_led_context *ctx);
 mls_error mls_led_start(mls_led_context *ctx);
 mls_error mls_led_run_loop(mls_led_context *ledctx);
-void mls_led_log_config(mls_led_context *ctx, mls_engine_led_buffer *buffer);
 mls_buffer_slice *mls_led_context_prepare_data(mls_led_context *ctx, mls_buffer_slice *slice);
+mls_bool mls_led_has_data_updated(mls_led_context *ctx);
+void mls_led_log_config(mls_led_context *ctx, mls_engine_led_buffer *buffer);
+void mls_led_flush(mls_led_context *ctx, rmt_working_context *working);
+void mls_led_pull(mls_led_context *ctx);
+
+mls_led_rgb_buffer *mls_led_rgb_buffer_new();
+void mls_led_rgb_buffer_init(mls_led_rgb_buffer *buffer);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -73,10 +88,18 @@ mls_error mls_led_init(mls_led_context *ctx, mls_app *app)
     }
 
     mls_settings *settings = &app->settings.settings;
-    mls_engine_led_buffer *led_buffer = &app->engine.engine.led_buffer;
+    mls_engine_led_buffer *source = &app->engine.engine.led_buffer;
+
+    // make dest-buffer
+    mls_led_rgb_buffer *dest = mls_led_rgb_buffer_new();
+    if (dest == NULL)
+    {
+        return mls_errors_make(500, "mls_led_create: make output buffer, got nil");
+    }
 
     ctx->settings = settings;
-    ctx->buffer = led_buffer;
+    ctx->source = source;
+    ctx->destination = dest;
 
     return NULL;
 }
@@ -88,16 +111,72 @@ mls_error mls_led_create(mls_led_context *ctx)
     task->data = ctx;
     task->name = "mls_ws2812_led_task";
     task->fn = mls_led_task_run_fn;
+
     return NULL;
 }
 
 mls_error mls_led_start(mls_led_context *ctx)
 {
 
-    mls_led_log_config(ctx, ctx->buffer);
+    mls_led_log_config(ctx, ctx->source);
 
     mls_task *task = &ctx->task;
     return mls_task_start(task);
+}
+
+void mls_led_flush(mls_led_context *ctx, rmt_working_context *working)
+{
+    mls_buffer_slice data_holder;
+    mls_buffer_slice *data = mls_led_context_prepare_data(ctx, &data_holder);
+    if (data)
+    {
+        ESP_ERROR_CHECK(rmt_transmit(working->channel, working->encoder, data->data, data->length, working->config));
+        ESP_ERROR_CHECK(rmt_tx_wait_all_done(working->channel, portMAX_DELAY));
+    }
+}
+
+void mls_led_pull(mls_led_context *ctx)
+{
+    mls_engine_led_buffer *src = ctx->source;
+    mls_led_rgb_buffer *dst = ctx->destination;
+    if (src == NULL || dst == NULL)
+    {
+        ESP_LOGE(TAG, "mls_led_pull src|dst is nil");
+        return;
+    }
+
+    int i, offset, length;
+    mls_rgb *p_rgb = NULL;
+    mls_argb *p_argb = NULL;
+
+    length = src->length;
+    offset = src->offset;
+
+    for (i = 0; i < length; i++)
+    {
+        p_argb = src->items + i + offset;
+        p_rgb = dst->items + i;
+        mls_argb_to_rgb(p_argb, p_rgb);
+    }
+
+    dst->active_count = length;
+    dst->revision = src->revision;
+
+    // log ...
+    p_argb = src->items;
+    p_rgb = dst->items;
+    int rev = dst->revision;
+    int ptr1 = (int)((void *)p_argb);
+    int ptr2 = (int)((void *)p_rgb);
+    ESP_LOGI(TAG, "mls_led_pull: sync to revision: %d", rev);
+    ESP_LOGI(TAG, "mls_led_pull: [led_buffer ptr1:%d ptr2:%d offset:%d length:%d]", ptr1, ptr2, offset, length);
+}
+
+mls_bool mls_led_has_data_updated(mls_led_context *ctx)
+{
+    mls_revision r1 = ctx->source->revision;
+    mls_revision r2 = ctx->destination->revision;
+    return (r1 != r2);
 }
 
 mls_error mls_led_run_loop(mls_led_context *ctx)
@@ -125,43 +204,23 @@ mls_error mls_led_run_loop(mls_led_context *ctx)
     ESP_LOGI(TAG, "Enable RMT TX channel");
     ESP_ERROR_CHECK(rmt_enable(led_chan));
 
-    ESP_LOGI(TAG, "Start LED rainbow chase");
+    // ESP_LOGI(TAG, "Start LED rainbow chase");
     rmt_transmit_config_t tx_config = {
         .loop_count = 0, // no transfer loop
     };
 
-    mls_buffer_slice data_holder;
-    mls_engine_led_buffer *buffer = ctx->buffer;
-    mls_revision rev_data = 0;
-    mls_revision rev_cfg = 0;
-    mls_bool update = YES;
+    rmt_working_context working;
+    working.config = &tx_config;
+    working.channel = led_chan;
+    working.encoder = led_encoder;
 
     while (1)
     {
         mls_sleep(EXAMPLE_CHASE_SPEED_MS);
-        update = NO;
-
-        if (rev_cfg != buffer->revision_of_config)
+        if (mls_led_has_data_updated(ctx))
         {
-            rev_cfg = buffer->revision_of_config;
-            update = YES;
-            mls_led_log_config(ctx, buffer);
-        }
-
-        if (rev_data != buffer->revision_of_data)
-        {
-            rev_data = buffer->revision_of_data;
-            update = YES;
-        }
-
-        if (update)
-        {
-            mls_buffer_slice *data = mls_led_context_prepare_data(ctx, &data_holder);
-            if (data)
-            {
-                ESP_ERROR_CHECK(rmt_transmit(led_chan, led_encoder, data->data, data->length, &tx_config));
-                ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_chan, portMAX_DELAY));
-            }
+            mls_led_pull(ctx);
+            mls_led_flush(ctx, &working);
         }
     }
 
@@ -232,23 +291,47 @@ void mls_led_log_config(mls_led_context *ctx, mls_engine_led_buffer *buffer)
 
 mls_buffer_slice *mls_led_context_prepare_data(mls_led_context *ctx, mls_buffer_slice *slice)
 {
-    mls_engine_led_buffer *buffer = ctx->buffer;
-    mls_engine_led_item *array = buffer->items;
-    uint offset = buffer->offset;
-    uint length = buffer->length;
-
-    uint p0 = 0; // head
-    uint p1 = offset;
-    uint p2 = offset + length;
-    uint p3 = buffer->total; // ending
-
-    if ((p0 <= p1) && (p1 <= p2) && (p2 <= p3))
+    if (ctx && slice)
     {
-        slice->data = (void *)(array + offset);
-        slice->length = length * buffer->unit_size;
-        return slice;
+        mls_led_rgb_buffer *dest = ctx->destination;
+        if (dest)
+        {
+            void *p_data = dest->items;
+            slice->data = p_data;
+            slice->length = dest->unit_size * dest->active_count;
+            return slice;
+        }
     }
     return NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// mls_led_rgb_buffer
+
+mls_led_rgb_buffer *mls_led_rgb_buffer_new()
+{
+    size_t size = sizeof(mls_led_rgb_buffer);
+    mls_led_rgb_buffer *p = malloc(size);
+    mls_led_rgb_buffer_init(p);
+    return p;
+}
+
+void mls_led_rgb_buffer_init(mls_led_rgb_buffer *buffer)
+{
+    if (buffer == NULL)
+    {
+        return;
+    }
+
+    memset(buffer, 0, sizeof(buffer[0]));
+    size_t unit_size = sizeof(buffer->items[0]);
+    size_t total_size = sizeof(buffer->items);
+
+    buffer->total_size = total_size;
+    buffer->unit_size = unit_size;
+    buffer->total_count = total_size / unit_size;
+    buffer->active_count = 88;
+    buffer->revision = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

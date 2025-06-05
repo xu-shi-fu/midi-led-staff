@@ -1,26 +1,80 @@
 package com.github.xushifu.mls.network.mlscp;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public final class BlockGroup implements IntegerValue {
 
-    public final static BlockGroup COMMON = create(0);
-    public final static BlockGroup SYSTEM = create(1);
-    public final static BlockGroup MIDI = create(2);
-    public final static BlockGroup LED = create(3);
-    public final static BlockGroup EXAMPLE = create(4);
-    public final static BlockGroup TEST = create(5);
+    public final static BlockGroup COMMON = create(0, "COMMON");
+    public final static BlockGroup SYSTEM = create(1, "SYSTEM");
+    public final static BlockGroup MIDI = create(2, "MIDI");
+    public final static BlockGroup LED = create(3, "LED");
+    public final static BlockGroup EXAMPLE = create(4, "EXAMPLE");
+    public final static BlockGroup TEST = create(5, "TEST");
 
-    private final int value;
+    private static void list_all(List<BlockGroup> dst) {
 
-    private BlockGroup(int n) {
-        this.value = n;
+        dst.add(COMMON);
+        dst.add(LED);
+        dst.add(MIDI);
+        dst.add(SYSTEM);
+
+        dst.add(EXAMPLE);
+        dst.add(TEST);
     }
 
-    public static BlockGroup create(int n) {
-        return new BlockGroup(n);
+    private BlockGroup(int n, String t) {
+        this.value = n;
+        this.text = t;
+    }
+
+    private final int value;
+    private final String text;
+
+    private final static Table table = new Table();
+
+    private static BlockGroup create(int value, String text) {
+        return new BlockGroup(value, text);
     }
 
     public static BlockGroup get(int n) {
-        return new BlockGroup(n);
+        BlockGroup group = table.find(n);
+        if (group == null) {
+            group = create(n, "unknown");
+        }
+        return group;
+    }
+
+    private final static class Table {
+
+        final Map<Integer, BlockGroup> map;
+
+        private Table() {
+            this.map = new HashMap<>();
+        }
+
+        synchronized BlockGroup find(int n) {
+            Map<Integer, BlockGroup> all = get_all();
+            return all.get(n);
+        }
+
+        Map<Integer, BlockGroup> get_all() {
+            Map<Integer, BlockGroup> all = this.map;
+            if (all.isEmpty()) {
+                load_all(all);
+            }
+            return all;
+        }
+
+        void load_all(Map<Integer, BlockGroup> dst) {
+            List<BlockGroup> src = new ArrayList<>();
+            list_all(src);
+            for (BlockGroup group : src) {
+                dst.put(group.value, group);
+            }
+        }
     }
 
     @Override
@@ -47,12 +101,11 @@ public final class BlockGroup implements IntegerValue {
 
     @Override
     public String toString() {
-        return this.value + "";
+        return this.text + "(" + this.value + ")";
     }
 
     @Override
     public int toInt() {
         return this.value;
     }
-
 }

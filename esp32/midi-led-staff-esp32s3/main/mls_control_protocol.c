@@ -1,6 +1,7 @@
 // mls_control_protocol.c
 
 #include "mls_control_protocol.h"
+#include "mls_cp_base.h"
 #include "mls_tasks.h"
 #include "mls_common.h"
 
@@ -183,6 +184,86 @@ mls_error mls_cp_pack_parser_parse(mls_cp_pack_parser *parser, uint8_t *data, si
     }
 
     return NULL;
+}
+
+/*******************************************************************************
+ * mls_argb_xxx
+ */
+
+mls_argb mls_argb_color(int a, int r, int g, int b)
+{
+    mls_argb color;
+    color.a = a;
+    color.r = r;
+    color.g = g;
+    color.b = b;
+    return color;
+}
+
+void mls_argb_to_rgb(mls_argb *src, mls_rgb *dest)
+{
+    if (src && dest)
+    {
+        dest->r = src->r;
+        dest->g = src->g;
+        dest->b = src->b;
+    }
+}
+
+void mls_rgb_to_argb(mls_rgb *src, mls_argb *dest)
+{
+    if (src && dest)
+    {
+        dest->r = src->r;
+        dest->g = src->g;
+        dest->b = src->b;
+        dest->a = 0xff;
+    }
+}
+
+mls_argb mls_argb_red()
+{
+    return mls_argb_color(255, 255, 0, 0);
+}
+
+mls_argb mls_argb_green()
+{
+    return mls_argb_color(255, 0, 255, 0);
+}
+
+mls_argb mls_argb_blue()
+{
+    return mls_argb_color(255, 0, 0, 255);
+}
+
+mls_argb mls_argb_orange()
+{
+    return mls_argb_color(255, 0xff, 0x7f, 0x00);
+}
+
+mls_argb mls_argb_yellow()
+{
+    return mls_argb_color(255, 0xff, 0xff, 0x00);
+}
+
+mls_argb mls_argb_azure()
+{
+    return mls_argb_color(255, 0x00, 0xff, 0xff);
+}
+
+mls_argb mls_argb_purple()
+{
+    return mls_argb_color(255, 0xa0, 0x20, 0xf0);
+}
+
+mls_argb mls_argb_white()
+{
+    return mls_argb_color(255, 255, 255, 255);
+}
+
+mls_argb mls_argb_black()
+{
+    return mls_argb_color(255, 0, 0, 0);
 }
 
 /*******************************************************************************

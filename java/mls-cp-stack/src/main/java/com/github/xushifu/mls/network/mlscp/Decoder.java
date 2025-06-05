@@ -75,7 +75,7 @@ public final class Decoder {
             head.setSize(nSize);
             head.setType(BlockType.get(nType));
             head.setGroup(group);
-            head.setField(BlockField.get(group, nField));
+            head.setField(BlockField.get(nGroup, nField));
 
             // body
             BlockTypeFactory factory = bt_mapper.findFactory(head);

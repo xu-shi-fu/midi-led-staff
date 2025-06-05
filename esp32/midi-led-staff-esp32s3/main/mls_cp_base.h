@@ -93,6 +93,7 @@
 #define MLS_CP_LOCATION_STYLES "/styles"
 #define MLS_CP_LOCATION_SETTINGS "/settings"
 #define MLS_CP_LOCATION_MODES "/modes"
+#define MLS_CP_LOCATION_MODES_CURRENT "/modes/current"
 
 /*******************************************************************************
  * statuses
@@ -165,6 +166,16 @@ typedef struct mls_argb_t
 
 } mls_argb;
 
+// 注意: 这个结构中的字段顺序是按照 ws2812 的时序 "G-R-B" 排列的
+typedef struct mls_rgb_t
+{
+
+    mls_byte g; // green
+    mls_byte r; // red
+    mls_byte b; // blue
+
+} mls_rgb;
+
 /*******************************************************************************
  * functions
  *  */
@@ -174,6 +185,20 @@ mls_string mls_cp_group_field_stringify(mls_cp_group_id group, mls_cp_field_id f
 mls_string mls_cp_status_stringify(mls_cp_status_code code);
 
 mls_uint16 mls_cp_version_to_uint16(mls_cp_version *version);
+
+void mls_argb_to_rgb(mls_argb *src, mls_rgb *dest);
+void mls_rgb_to_argb(mls_rgb *src, mls_argb *dest);
+
+mls_argb mls_argb_color(int a, int r, int g, int b);
+mls_argb mls_argb_red();
+mls_argb mls_argb_green();
+mls_argb mls_argb_blue();
+mls_argb mls_argb_orange();
+mls_argb mls_argb_yellow();
+mls_argb mls_argb_azure();
+mls_argb mls_argb_purple();
+mls_argb mls_argb_white();
+mls_argb mls_argb_black();
 
 /*******************************************************************************
  * EOF

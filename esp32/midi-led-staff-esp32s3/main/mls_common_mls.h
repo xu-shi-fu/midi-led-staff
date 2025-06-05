@@ -6,6 +6,7 @@
 #include "mls_config.h"
 #include "mls_common_std.h"
 #include "mls_types.h"
+#include "mls_errors.h"
 
 extern const char *TAG;
 

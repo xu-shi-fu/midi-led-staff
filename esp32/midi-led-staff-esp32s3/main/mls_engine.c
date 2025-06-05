@@ -6,6 +6,9 @@
 #include "mls_ws2812_led.h"
 // #include "mls_tusb_midi.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// internal functions
+
 mls_error mls_engine_module_on_init(mls_module *m);
 mls_error mls_engine_module_on_create(mls_module *m);
 mls_error mls_engine_module_on_start(mls_module *m);
@@ -13,21 +16,12 @@ mls_error mls_engine_module_on_start(mls_module *m);
 mls_engine_module *mls_engine_module_get_module(mls_module *m);
 mls_engine *mls_engine_module_get_engine(mls_module *m);
 
-// #define rgb_map_count 12
-// ColorRGB rgb_map[rgb_map_count];
+mls_error mls_engine_init(mls_engine *engine);
+mls_error mls_engine_create(mls_engine *engine);
+mls_error mls_engine_start(mls_engine *engine);
+mls_error mls_engine_loop(mls_engine *engine);
 
-// void mls_engine_state_to_rgb(MidiKeyState *src, ColorRGB *dst)
-// {
-
-//     if (src == NULL || dst == NULL)
-//     {
-//         return;
-//     }
-
-//     uint8_t i = src->note % rgb_map_count;
-//     ColorRGB rgb = rgb_map[i];
-//     *dst = rgb;
-// }
+mls_error mls_engine_task_func(mls_task *t);
 
 ////////////////////////////////////////////////////////////////////////////////
 // engine
@@ -48,7 +42,36 @@ mls_error mls_engine_init(mls_engine *engine)
     err = mls_engine_led_buffer_init(led_buffer);
     mls_error_holder_push(&eh, err);
 
+    err = mls_task_init(&engine->task);
+    mls_error_holder_push(&eh, err);
+
     return mls_error_holder_get_error(&eh);
+}
+
+mls_error mls_engine_create(mls_engine *engine)
+{
+
+    mls_task *task = &engine->task;
+    task->name = "mls_engine_task";
+    task->data = engine;
+    task->fn = mls_engine_task_func;
+
+    return NULL;
+}
+
+mls_error mls_engine_start(mls_engine *engine)
+{
+    return mls_task_start(&engine->task);
+}
+
+mls_error mls_engine_task_func(mls_task *t)
+{
+    mls_engine *engine = t->data;
+    if (engine)
+    {
+        return mls_engine_loop(engine);
+    }
+    return NULL;
 }
 
 mls_error mls_engine_loop(mls_engine *engine)
@@ -83,6 +106,16 @@ mls_error mls_engine_loop(mls_engine *engine)
     //     vTaskDelay(1);
     // }
 
+    mls_engine_led_buffer *led_buf = &engine->led_buffer;
+
+    for (;;)
+    {
+        ESP_LOGI(TAG, "mls_engine_loop: keep-alive");
+        mls_sleep(3000);
+
+        led_buf->revision++;
+    }
+
     return NULL;
 }
 
@@ -110,31 +143,34 @@ mls_engine *mls_engine_module_get_engine(mls_module *m1)
 
 mls_error mls_engine_module_on_init(mls_module *m)
 {
-    mls_engine_module *module = mls_engine_module_get_module(m);
-    if (module)
+    // mls_engine_module *module = mls_engine_module_get_module(m);
+    mls_engine *engine = mls_engine_module_get_engine(m);
+    if (engine)
     {
-        return mls_engine_init(&module->engine);
+        return mls_engine_init(engine);
     }
     return NULL;
 }
 
 mls_error mls_engine_module_on_create(mls_module *m)
 {
-    // ESP_LOGI(TAG, "mls_engine_module::on_create");
-
     mls_engine *engine = mls_engine_module_get_engine(m);
     if (engine)
     {
         mls_engine_led_buffer *led_buffer = &engine->led_buffer;
         mls_engine_led_buffer_init_as_demo(led_buffer);
+        return mls_engine_create(engine);
     }
-
     return NULL;
 }
 
 mls_error mls_engine_module_on_start(mls_module *m)
 {
-    // ESP_LOGI(TAG, "mls_engine_module::on_start");
+    mls_engine *engine = mls_engine_module_get_engine(m);
+    if (engine)
+    {
+        return mls_engine_start(engine);
+    }
     return NULL;
 }
 
@@ -158,40 +194,46 @@ mls_error mls_engine_led_buffer_init(mls_engine_led_buffer *inst)
     memset(inst, 0, sizeof(inst[0]));
 
     size_t s_total = sizeof(inst->items);
-    size_t s_unit = sizeof(mls_engine_led_item);
+    size_t s_unit = sizeof(inst->items[0]);
 
     inst->total_size = s_total;
     inst->unit_size = s_unit;
     inst->total = s_total / s_unit;
     inst->length = s_total / s_unit;
     inst->offset = 0;
-    inst->revision_of_config = 1;
-    inst->revision_of_data = 1;
+    inst->revision = 1;
 
     return NULL;
 }
 
+#define DEMO_PATTERN_SIZE 7
+
 mls_error mls_engine_led_buffer_init_as_demo(mls_engine_led_buffer *inst)
 {
-
-    mls_engine_led_item led;
-    mls_engine_led_item *items = inst->items;
+    mls_argb led;
+    mls_argb *items;
+    mls_argb pattern[DEMO_PATTERN_SIZE];
     uint i, end;
 
-    end = inst->total;
-    led.r = 0xff;
-    led.g = 0xff;
-    led.b = 0xff;
+    pattern[0] = mls_argb_red();
+    pattern[1] = mls_argb_orange();
+    pattern[2] = mls_argb_yellow();
+    pattern[3] = mls_argb_green();
+    pattern[4] = mls_argb_blue();
+    pattern[5] = mls_argb_azure();
+    pattern[6] = mls_argb_purple();
 
+    items = inst->items;
+    end = inst->total;
     for (i = 0; i < end; i++)
     {
+        led = pattern[i % DEMO_PATTERN_SIZE];
         items[i] = led;
-        led.r += 17;
-        led.g += 28;
-        led.b += 39;
     }
 
-    inst->revision_of_data++;
+    inst->length = DEMO_PATTERN_SIZE;
+    inst->revision_data++;
+    inst->revision++;
     return NULL;
 }
 
