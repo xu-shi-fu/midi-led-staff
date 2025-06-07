@@ -199,8 +199,8 @@ mls_error mls_engine_led_buffer_init(mls_engine_led_buffer *inst)
     inst->total_size = s_total;
     inst->unit_size = s_unit;
     inst->total = s_total / s_unit;
-    inst->length = s_total / s_unit;
-    inst->offset = 0;
+    inst->view_size = s_total / s_unit;
+    inst->view_position = 0;
     inst->revision = 1;
 
     return NULL;
@@ -231,8 +231,7 @@ mls_error mls_engine_led_buffer_init_as_demo(mls_engine_led_buffer *inst)
         items[i] = led;
     }
 
-    inst->length = DEMO_PATTERN_SIZE;
-    inst->revision_data++;
+    inst->view_size = DEMO_PATTERN_SIZE;
     inst->revision++;
     return NULL;
 }

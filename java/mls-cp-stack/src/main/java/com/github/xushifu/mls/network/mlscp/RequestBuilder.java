@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.github.xushifu.mls.network.mlscp.blocks.ArgbArrayBody;
 import com.github.xushifu.mls.network.mlscp.blocks.ByteArrayBody;
+import com.github.xushifu.mls.network.mlscp.blocks.NoValueBody;
 import com.github.xushifu.mls.network.mlscp.blocks.StringBody;
 import com.github.xushifu.mls.network.mlscp.blocks.Uint16Body;
 import com.github.xushifu.mls.network.mlscp.blocks.Uint32Body;
@@ -40,6 +41,18 @@ public class RequestBuilder {
         req.setMethod(this.method);
         req.setBlocks(this.additions);
         return req;
+    }
+
+    public RequestBuilder addNoValue(BlockField field) {
+        final Block block = new Block();
+        final NoValueBody body = new NoValueBody();
+        final BlockHead head = block.getHead();
+        head.setType(body.type());
+        head.setGroup(field.getOwnerGroup());
+        head.setField(field);
+        block.setBody(body);
+        this.additions.add(block);
+        return this;
     }
 
     public RequestBuilder addUint8(BlockField field, int value) {

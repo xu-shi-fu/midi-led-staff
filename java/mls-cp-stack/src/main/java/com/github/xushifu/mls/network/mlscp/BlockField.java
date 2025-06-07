@@ -7,8 +7,7 @@ import java.util.Map;
 
 public final class BlockField implements IntegerValue {
 
-    public final static BlockField COMMON_EOP = createCommon(0, "eop");
-    public final static BlockField COMMON_EOG = createCommon(9, "eog");
+    public final static BlockField COMMON_EOP = createCommon(0, "end_of_pack");
     public final static BlockField COMMON_METHOD = createCommon(1, "method");
     public final static BlockField COMMON_LOCATION = createCommon(2, "location");
     public final static BlockField COMMON_VERSION = createCommon(3, "version");
@@ -17,12 +16,16 @@ public final class BlockField implements IntegerValue {
     public final static BlockField COMMON_TRANSACTION_ID = createCommon(6, "transaction");
     public final static BlockField COMMON_reserved = createCommon(7, "reserved");
     public final static BlockField COMMON_TIMESTAMP = createCommon(8, "timestamp");
+    public final static BlockField COMMON_EOG = createCommon(9, "end_of_group");
+    public final static BlockField COMMON_FLUSH = createCommon(10, "flush");
 
     public final static BlockField FOO2 = createSystem(0, "sys...todo");
 
-    public final static BlockField LED_POSITION = createLED(1, "led_at_pos");
-    public final static BlockField LED_COUNT = createLED(2, "led_count");
-    public final static BlockField LED_ITEMS = createLED(3, "led_argb_items");
+    public final static BlockField LED_VIEW_POSITION = createLED(1, "led_view_pos");
+    public final static BlockField LED_VIEW_SIZE = createLED(2, "led_view_size");
+    public final static BlockField LED_PART_ITEMS = createLED(3, "led_part_items");
+    public final static BlockField LED_PART_POSITION = createLED(4, "led_part_pos");
+    public final static BlockField LED_PART_SIZE = createLED(5, "led_part_size");
 
     public final static BlockField FOO4 = createMIDI(0, "midi...todo");
 
@@ -42,9 +45,11 @@ public final class BlockField implements IntegerValue {
 
         list.add(FOO2);
 
-        list.add(LED_POSITION);
-        list.add(LED_COUNT);
-        list.add(LED_ITEMS);
+        list.add(LED_VIEW_POSITION);
+        list.add(LED_VIEW_SIZE);
+        list.add(LED_PART_ITEMS);
+        list.add(LED_PART_POSITION);
+        list.add(LED_PART_SIZE);
 
         list.add(FOO4);
     }

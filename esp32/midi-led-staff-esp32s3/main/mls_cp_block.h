@@ -16,6 +16,13 @@ struct mls_cp_block_array_holder_t;
  * 结构
  */
 
+// 协议数据块的 group & field
+typedef struct mls_cp_group_field_t
+{
+    mls_cp_group_id group;
+    mls_cp_field_id field;
+} mls_cp_group_field;
+
 // 协议数据块的开头
 typedef struct mls_cp_block_head_t
 {
@@ -142,9 +149,21 @@ mls_cp_block_head *mls_cp_block_head_set_field(mls_cp_block_head *head, mls_cp_f
 mls_cp_block_head *mls_cp_block_head_set_size(mls_cp_block_head *head, mls_cp_block_size size);
 mls_cp_block_head *mls_cp_block_head_set_type(mls_cp_block_head *head, mls_cp_block_type bt);
 
+mls_cp_group_field mls_cp_block_head_get_group_field(mls_cp_block_head *head);
+mls_bool mls_cp_block_head_is_group_field_of(mls_cp_block_head *head, mls_cp_group_field gf);
+
+/**************************************
+ * mls_cp_group_field
+ * */
+
+mls_cp_group_field mls_cp_group_field_value_of(mls_cp_group_id gid, mls_cp_field_id fid);
+
 /**************************************
  * mls_cp_block
  * */
+
+mls_bool mls_cp_block_is_group_field_of(mls_cp_block *block, mls_cp_group_field gf);
+mls_cp_group_field mls_cp_block_get_group_field(mls_cp_block *block);
 
 mls_byte mls_cp_block_get_body_byte(mls_cp_block *block);
 mls_buffer_slice mls_cp_block_get_body_bytes(mls_cp_block *block);
@@ -154,10 +173,14 @@ mls_int8 mls_cp_block_get_body_int8(mls_cp_block *block);
 mls_int16 mls_cp_block_get_body_int16(mls_cp_block *block);
 mls_int32 mls_cp_block_get_body_int32(mls_cp_block *block);
 mls_int64 mls_cp_block_get_body_int64(mls_cp_block *block);
+mls_int mls_cp_block_get_body_int(mls_cp_block *block); //  可以是任意 8|16|32|64 位的 int
 
 mls_uint8 mls_cp_block_get_body_uint8(mls_cp_block *block);
 mls_uint16 mls_cp_block_get_body_uint16(mls_cp_block *block);
 mls_uint32 mls_cp_block_get_body_uint32(mls_cp_block *block);
+mls_uint64 mls_cp_block_get_body_uint64(mls_cp_block *block);
+mls_uint mls_cp_block_get_body_uint(mls_cp_block *block); // 可以是任意 8|16|32|64 位的 uint
+
 mls_uint64 mls_cp_block_get_body_uint64(mls_cp_block *block);
 
 /**************************************
@@ -183,6 +206,8 @@ void mls_cp_block_writer_write_byte(mls_cp_block_writer *writer, mls_cp_block_he
 void mls_cp_block_writer_write_bytes(mls_cp_block_writer *writer, mls_cp_block_head *head, const mls_byte *data_ptr, size_t data_len);
 void mls_cp_block_writer_write_string(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_string str);
 void mls_cp_block_writer_write_argb(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_argb argb);
+void mls_cp_block_writer_write_argb_array(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_argb *items, size_t items_size_in_byte);
+void mls_cp_block_writer_write_no_value(mls_cp_block_writer *writer, mls_cp_block_head *head);
 
 void mls_cp_block_writer_write_uint8(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_uint8 n);
 void mls_cp_block_writer_write_uint16(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_uint16 n);

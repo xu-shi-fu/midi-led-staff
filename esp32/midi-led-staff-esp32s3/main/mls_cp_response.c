@@ -142,11 +142,25 @@ void mls_cp_response_builder_add_string(mls_cp_response_builder *inst, mls_cp_gr
     mls_cp_block_writer_write_string(writer, &head, value);
 }
 
+void mls_cp_response_builder_add_no_value(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field)
+{
+    mls_cp_block_head head = mls_cp_response_builder_prepare_head(inst, group, field, MLS_CP_TYPE_NO_VALUE);
+    mls_cp_block_writer *writer = mls_cp_response_builder_get_writer(inst);
+    mls_cp_block_writer_write_no_value(writer, &head);
+}
+
 void mls_cp_response_builder_add_argb(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_argb value)
 {
     mls_cp_block_head head = mls_cp_response_builder_prepare_head(inst, group, field, MLS_CP_TYPE_ARGB);
     mls_cp_block_writer *writer = mls_cp_response_builder_get_writer(inst);
     mls_cp_block_writer_write_argb(writer, &head, value);
+}
+
+void mls_cp_response_builder_add_argb_array(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_argb *items, size_t items_size_in_byte)
+{
+    mls_cp_block_head head = mls_cp_response_builder_prepare_head(inst, group, field, MLS_CP_TYPE_ARGB_ARRAY);
+    mls_cp_block_writer *writer = mls_cp_response_builder_get_writer(inst);
+    mls_cp_block_writer_write_argb_array(writer, &head, items, items_size_in_byte);
 }
 
 void mls_cp_response_builder_add_int8(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_int8 value)

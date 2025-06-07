@@ -49,8 +49,8 @@ mls_error mls_app_enumerate_modules(mls_app *app)
     mod_server->enabled = YES;
     mod_engine->enabled = YES;
 
-    mod_udp->enabled = NO;  // YES;
-    mod_wifi->enabled = NO; // YES;
+    mod_udp->enabled = YES;  // YES;
+    mod_wifi->enabled = YES; // YES;
     mod_ble->enabled = NO;
 
     // list modules

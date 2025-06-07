@@ -17,6 +17,7 @@ typedef struct mls_cp_udp_adapter_t
     mls_cp_server *server;
     mls_cp_udp_module *module_outer;
     mls_settings *settings;
+    mls_app *app;
 
     int port;
     int socket_fd;
@@ -85,6 +86,7 @@ mls_error mls_cp_udp_module_on_create(mls_module *m)
     mls_settings *settings = adapter->settings;
 
     adapter->port = settings->udp.port;
+    adapter->app = m->app;
 
     mls_error err = mls_cp_udp_adapter_create(adapter);
     if (err)
@@ -162,6 +164,7 @@ mls_error mls_cp_udp_adapter_wire(mls_cp_udp_adapter *adapter)
     context->implementation = &adapter->impl;
     context->dispatcher = dispatcher;
     context->handler = NULL;
+    context->app = adapter->app;
 
     request->context = context;
     request->blocks = rx_blocks;
@@ -215,44 +218,6 @@ mls_error mls_cp_udp_adapter_start(mls_cp_udp_adapter *adapter)
     mls_task *task = &adapter->task;
     return mls_task_start(task);
 }
-
-// deprecated
-// mls_error mls_cp_udp_adapter_listen(mls_cp_udp_adapter *adapter)
-// {
-//     mls_cp_udp_adapter *ctx = adapter;
-
-//     const mls_string host = "0.0.0.0";
-//     int port = ctx->port;
-
-//     // create socket
-//     int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
-//     if (sock_fd < 0)
-//     {
-//         ESP_LOGE(TAG, "error: udp socket create failed");
-//         return mls_errors_make(500, "udp socket create error");
-//     }
-
-//     // address
-//     struct sockaddr_in addr;
-//     addr.sin_family = AF_INET;
-//     addr.sin_addr.s_addr = inet_addr(host);
-//     addr.sin_port = htons(port);
-
-//     // bind
-//     int ret = bind(sock_fd, (struct sockaddr *)&addr, sizeof(addr));
-//     if (ret < 0)
-//     {
-//         ESP_LOGE(TAG, "error: udp bind return: %d", ret);
-//         return mls_errors_make(0, "udp bind error");
-//     }
-
-//     ESP_LOGI(TAG, "udp://listen@%s:%d", host, port);
-
-//     ctx->address = addr;
-//     ctx->socket_fd = sock_fd;
-
-//     return NULL;
-// }
 
 void mls_cp_udp_adapter_nop(void *p)
 {

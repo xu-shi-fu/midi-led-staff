@@ -59,27 +59,6 @@ mls_module *mls_led_module_init(mls_led_module *m1)
     return m2;
 }
 
-// void mls_led_init_as_demo(mls_led_context *ledctx)
-// {
-//     uint8_t r, g, b;
-//     uint count, index;
-//     count = mls_led_count(ledctx);
-//     for (index = 0; index < count; index++)
-//     {
-//         if (index == 0)
-//         {
-//             r = g = b = 1;
-//         }
-//         else
-//         {
-//             r *= 2;
-//             g *= 2;
-//             b *= 2;
-//         }
-//         mls_led_set_color(ledctx, index, r, g, b);
-//     }
-// }
-
 mls_error mls_led_init(mls_led_context *ctx, mls_app *app)
 {
     if (ctx == NULL || app == NULL)
@@ -145,21 +124,25 @@ void mls_led_pull(mls_led_context *ctx)
         return;
     }
 
-    int i, offset, length;
-    mls_rgb *p_rgb = NULL;
-    mls_argb *p_argb = NULL;
+    int i, offset, count, total;
+    mls_rgb *p_rgb;
+    mls_argb *p_argb;
 
-    length = src->length;
-    offset = src->offset;
+    offset = src->view_position;
+    count = src->view_size;
+    total = src->total;
+    p_argb = src->items;
+    p_rgb = dst->items;
 
-    for (i = 0; i < length; i++)
+    for (i = 0; i < count; i++)
     {
-        p_argb = src->items + i + offset;
-        p_rgb = dst->items + i;
-        mls_argb_to_rgb(p_argb, p_rgb);
+        if ((i < total) && ((i + offset) < total))
+        {
+            mls_argb_to_rgb(p_argb + i + offset, p_rgb + i);
+        }
     }
 
-    dst->active_count = length;
+    dst->active_count = count;
     dst->revision = src->revision;
 
     // log ...
@@ -169,7 +152,7 @@ void mls_led_pull(mls_led_context *ctx)
     int ptr1 = (int)((void *)p_argb);
     int ptr2 = (int)((void *)p_rgb);
     ESP_LOGI(TAG, "mls_led_pull: sync to revision: %d", rev);
-    ESP_LOGI(TAG, "mls_led_pull: [led_buffer ptr1:%d ptr2:%d offset:%d length:%d]", ptr1, ptr2, offset, length);
+    ESP_LOGI(TAG, "mls_led_pull: [led_buffer ptr1:%d ptr2:%d offset:%d count:%d]", ptr1, ptr2, offset, count);
 }
 
 mls_bool mls_led_has_data_updated(mls_led_context *ctx)
@@ -227,46 +210,6 @@ mls_error mls_led_run_loop(mls_led_context *ctx)
     return NULL;
 }
 
-// uint mls_led_count(mls_led_context *ledctx)
-// {
-//     return MLS_LED_NUMBERS;
-// }
-
-// void mls_led_set_color(mls_led_context *ledctx, uint index, uint8_t r, uint8_t g, uint8_t b)
-// {
-//     if (index >= MLS_LED_NUMBERS)
-//     {
-//         return;
-//     }
-//     led_s->led_strip_pixels[(3 * index) + 0] = r;
-//     led_s->led_strip_pixels[(3 * index) + 1] = g;
-//     led_s->led_strip_pixels[(3 * index) + 2] = b;
-// }
-
-// void mls_led_set_color_rgb(mls_led_context *ledctx, uint index, ColorRGB *rgb)
-// {
-//     if (rgb == NULL)
-//     {
-//         return;
-//     }
-//     mls_led_set_color(led_s, index, rgb->r, rgb->g, rgb->b);
-// }
-
-// void mls_led_get_color(mls_led_context *ledctx, uint index, uint8_t *r, uint8_t *g, uint8_t *b)
-// {
-//     if (index >= MLS_LED_NUMBERS)
-//     {
-//         return;
-//     }
-//     if (r == NULL || g == NULL || b == NULL)
-//     {
-//         return;
-//     }
-//     r[0] = led_s->led_strip_pixels[(3 * index) + 0];
-//     g[0] = led_s->led_strip_pixels[(3 * index) + 1];
-//     b[0] = led_s->led_strip_pixels[(3 * index) + 2];
-// }
-
 mls_error mls_led_task_run_fn(mls_task *task)
 {
     mls_led_context *ctx = task->data;
@@ -280,13 +223,13 @@ void mls_led_log_config(mls_led_context *ctx, mls_engine_led_buffer *buffer)
         return;
     }
     int total = buffer->total;
-    int offset = buffer->offset;
-    int length = buffer->length;
+    int index = buffer->view_position;
+    int count = buffer->view_size;
     int unit_size = buffer->unit_size;
     int total_size = buffer->total_size;
 
-    ESP_LOGI(TAG, "mls_led_log_config: [led_buffer total:%d offset:%d length:%d unit_size:%d total_size:%d]",
-             total, offset, length, unit_size, total_size);
+    ESP_LOGI(TAG, "mls_led_log_config: [led_buffer total:%d index:%d count:%d unit_size:%d total_size:%d]",
+             total, index, count, unit_size, total_size);
 }
 
 mls_buffer_slice *mls_led_context_prepare_data(mls_led_context *ctx, mls_buffer_slice *slice)

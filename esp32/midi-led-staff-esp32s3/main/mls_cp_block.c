@@ -45,9 +45,71 @@ mls_cp_block_head *mls_cp_block_head_set_type(mls_cp_block_head *head, mls_cp_bl
     return head;
 }
 
+mls_cp_group_field mls_cp_block_head_get_group_field(mls_cp_block_head *head)
+{
+    mls_cp_group_field gf;
+    if (head)
+    {
+        gf.group = head->group;
+        gf.field = head->field;
+    }
+    else
+    {
+        gf.group = 0;
+        gf.field = 0;
+    }
+    return gf;
+}
+
+mls_bool mls_cp_block_head_is_group_field_of(mls_cp_block_head *head, mls_cp_group_field gf)
+{
+    if (head)
+    {
+        return (head->group == gf.group) && (head->field == gf.field);
+    }
+    return NO;
+}
+
+/*******************************************************************************
+ * mls_cp_group_field
+ */
+
+mls_cp_group_field mls_cp_group_field_value_of(mls_cp_group_id gid, mls_cp_field_id fid)
+{
+    mls_cp_group_field gf;
+    gf.group = gid;
+    gf.field = fid;
+    return gf;
+}
+
 /*******************************************************************************
  * mls_cp_block
  */
+
+mls_cp_group_field mls_cp_block_get_group_field(mls_cp_block *block)
+{
+    mls_cp_group_field gf;
+    if (block)
+    {
+        gf.group = block->head.group;
+        gf.field = block->head.field;
+    }
+    else
+    {
+        gf.group = 0;
+        gf.field = 0;
+    }
+    return gf;
+}
+
+mls_bool mls_cp_block_is_group_field_of(mls_cp_block *block, mls_cp_group_field gf)
+{
+    if (block)
+    {
+        return (block->head.group == gf.group) && (block->head.field == gf.field);
+    }
+    return NO;
+}
 
 mls_bool mls_cp_block_is_type_size_of(mls_cp_block *block, mls_cp_block_type block_type, size_t size2)
 {
@@ -167,6 +229,28 @@ mls_int64 mls_cp_block_get_body_int64(mls_cp_block *block)
     return ntohll(value);
 }
 
+//  可以是任意 8|16|32|64 位的 int
+mls_int mls_cp_block_get_body_int(mls_cp_block *block)
+{
+    if (mls_cp_block_is_type_size_of(block, MLS_CP_TYPE_INT8, 1))
+    {
+        return (mls_int)mls_cp_block_get_body_int8(block);
+    }
+    else if (mls_cp_block_is_type_size_of(block, MLS_CP_TYPE_INT16, 16 / 8))
+    {
+        return (mls_int)mls_cp_block_get_body_int16(block);
+    }
+    else if (mls_cp_block_is_type_size_of(block, MLS_CP_TYPE_INT32, 32 / 8))
+    {
+        return (mls_int)mls_cp_block_get_body_int32(block);
+    }
+    else if (mls_cp_block_is_type_size_of(block, MLS_CP_TYPE_INT64, 64 / 8))
+    {
+        return (mls_int)mls_cp_block_get_body_int64(block);
+    }
+    return 0;
+}
+
 mls_uint8 mls_cp_block_get_body_uint8(mls_cp_block *block)
 {
     mls_uint8 value = 0;
@@ -217,6 +301,28 @@ mls_uint64 mls_cp_block_get_body_uint64(mls_cp_block *block)
         value = ptr[0];
     }
     return ntohll(value);
+}
+
+// 可以是任意 8|16|32|64 位的 uint
+mls_uint mls_cp_block_get_body_uint(mls_cp_block *block)
+{
+    if (mls_cp_block_is_type_size_of(block, MLS_CP_TYPE_UINT8, 1))
+    {
+        return (mls_uint)mls_cp_block_get_body_uint8(block);
+    }
+    else if (mls_cp_block_is_type_size_of(block, MLS_CP_TYPE_UINT16, 16 / 8))
+    {
+        return (mls_uint)mls_cp_block_get_body_uint16(block);
+    }
+    else if (mls_cp_block_is_type_size_of(block, MLS_CP_TYPE_UINT32, 32 / 8))
+    {
+        return (mls_uint)mls_cp_block_get_body_uint32(block);
+    }
+    else if (mls_cp_block_is_type_size_of(block, MLS_CP_TYPE_UINT64, 64 / 8))
+    {
+        return (mls_uint)mls_cp_block_get_body_uint64(block);
+    }
+    return 0;
 }
 
 /*******************************************************************************
@@ -326,6 +432,29 @@ void mls_cp_block_writer_write_argb(mls_cp_block_writer *writer, mls_cp_block_he
 {
     mls_cp_block_head_set_type(head, MLS_CP_TYPE_ARGB);
     mls_cp_block_writer_write_block(writer, head, &argb, sizeof(argb));
+}
+
+void mls_cp_block_writer_write_argb_array(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_argb *items, size_t size_in_byte)
+{
+    size_t unit_size = sizeof(mls_argb);
+    size_in_byte = size_in_byte - (size_in_byte % unit_size);
+    if (size_in_byte <= 250)
+    {
+        mls_cp_block_head_set_type(head, MLS_CP_TYPE_ARGB_ARRAY);
+        mls_cp_block_writer_write_block(writer, head, items, size_in_byte);
+    }
+    else
+    {
+        int n = size_in_byte;
+        ESP_LOGW(TAG, "mls_cp_block_writer_write_argb_array: size_in_byte is too large, value=%d", n);
+    }
+}
+
+void mls_cp_block_writer_write_no_value(mls_cp_block_writer *writer, mls_cp_block_head *head)
+{
+    mls_byte b;
+    mls_cp_block_head_set_type(head, MLS_CP_TYPE_NO_VALUE);
+    mls_cp_block_writer_write_block(writer, head, &b, 0);
 }
 
 void mls_cp_block_writer_write_uint8(mls_cp_block_writer *writer, mls_cp_block_head *head, mls_uint8 n)
@@ -594,10 +723,12 @@ mls_string mls_cp_block_type_stringify(mls_cp_block_type b_type)
     case MLS_CP_TYPE_BYTES:
         return "byte_array";
 
-        // case MLS_CP_TYPE_BYTE:         return "byte";
-
+    case MLS_CP_TYPE_NO_VALUE:
+        return "[no_value]";
     case MLS_CP_TYPE_ARGB:
         return "argb";
+    case MLS_CP_TYPE_ARGB_ARRAY:
+        return "argb[]";
 
     default:
         break;
@@ -627,6 +758,28 @@ mls_string mls_cp_group_field_stringify(mls_cp_group_id group, mls_cp_field_id f
             return "MLS_CP_FIELD_COMMON_STATUS_MSG";
         case MLS_CP_FIELD_COMMON_TIMESTAMP:
             return "MLS_CP_FIELD_COMMON_TIMESTAMP";
+        case MLS_CP_FIELD_COMMON_END_OF_GROUP:
+            return "MLS_CP_FIELD_COMMON_END_OF_GROUP";
+        case MLS_CP_FIELD_COMMON_FLUSH:
+            return "MLS_CP_FIELD_COMMON_FLUSH";
+        default:
+            break;
+        }
+    }
+    else if (group == MLS_CP_GROUP_LED)
+    {
+        switch (field)
+        {
+        case MLS_CP_FIELD_LED_PART_ITEMS:
+            return "MLS_CP_FIELD_LED_PART_ITEMS";
+        case MLS_CP_FIELD_LED_PART_POSITION:
+            return "MLS_CP_FIELD_LED_PART_POSITION";
+        case MLS_CP_FIELD_LED_PART_SIZE:
+            return "MLS_CP_FIELD_LED_PART_SIZE";
+        case MLS_CP_FIELD_LED_VIEW_POSITION:
+            return "MLS_CP_FIELD_LED_VIEW_POSITION";
+        case MLS_CP_FIELD_LED_VIEW_SIZE:
+            return "MLS_CP_FIELD_LED_VIEW_SIZE";
         default:
             break;
         }

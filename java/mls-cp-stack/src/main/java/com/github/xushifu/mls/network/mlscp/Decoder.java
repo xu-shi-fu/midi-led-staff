@@ -19,6 +19,7 @@ import com.github.xushifu.mls.network.mlscp.blocks.Int16Body;
 import com.github.xushifu.mls.network.mlscp.blocks.Int32Body;
 import com.github.xushifu.mls.network.mlscp.blocks.Int64Body;
 import com.github.xushifu.mls.network.mlscp.blocks.Int8Body;
+import com.github.xushifu.mls.network.mlscp.blocks.NoValueBody;
 import com.github.xushifu.mls.network.mlscp.blocks.StringBody;
 import com.github.xushifu.mls.network.mlscp.blocks.Uint16Body;
 import com.github.xushifu.mls.network.mlscp.blocks.Uint32Body;
@@ -189,6 +190,7 @@ public final class Decoder {
             tab.put(BlockType.BYTE, (BlockHead head) -> new ByteBody());
             tab.put(BlockType.BYTES, (BlockHead head) -> abf.createByteArrayBody(head));
             tab.put(BlockType.STRING, (BlockHead head) -> abf.createStringBody(head));
+            tab.put(BlockType.NO_VALUE, (BlockHead head) -> abf.createNoValueBody(head));
 
             tab.put(BlockType.ARGB, (BlockHead head) -> new ArgbBody());
             tab.put(BlockType.ARGB_ARRAY, (BlockHead head) -> abf.createArgbArrayBody(head));
@@ -209,6 +211,10 @@ public final class Decoder {
             StringBody body = new StringBody();
             body.setLength(computeBodySize(head));
             return body;
+        }
+
+        BlockBody createNoValueBody(BlockHead head) {
+            return new NoValueBody();
         }
 
         BlockBody createByteArrayBody(BlockHead head) {

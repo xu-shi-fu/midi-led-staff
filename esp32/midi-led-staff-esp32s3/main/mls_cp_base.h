@@ -33,6 +33,7 @@
 #define MLS_CP_TYPE_BYTE MLS_CP_TYPE_UINT8
 
 #define MLS_CP_TYPE_ARGB 0x41
+#define MLS_CP_TYPE_ARGB_ARRAY 0x42
 
 /*******************************************************************************
  * groups
@@ -64,6 +65,8 @@
 #define MLS_CP_FIELD_COMMON_STATUS_MSG 5     // :string
 #define MLS_CP_FIELD_COMMON_TRANSACTION_ID 6 // :uint32
 #define MLS_CP_FIELD_COMMON_TIMESTAMP 8      // :uint64
+#define MLS_CP_FIELD_COMMON_END_OF_GROUP 9   // :uint8
+#define MLS_CP_FIELD_COMMON_FLUSH 10         // :(NO_VALUE)
 
 // @group:example
 
@@ -71,6 +74,41 @@
 #define MLS_CP_FIELD_EXAMPLE_BAR 2 // :int32
 
 // @group:test
+
+// @group:LED
+
+#define MLS_CP_FIELD_LED_VIEW_POSITION 1 // :uint8
+#define MLS_CP_FIELD_LED_VIEW_SIZE 2     // :uint8
+#define MLS_CP_FIELD_LED_PART_ITEMS 3    // :argb[]
+#define MLS_CP_FIELD_LED_PART_POSITION 4 // :uint8
+#define MLS_CP_FIELD_LED_PART_SIZE 5     // :uint8
+
+/*******************************************************************************
+ * group & field
+ */
+
+#define MLSCP_GROUP_FIELD(gid, fid) mls_cp_group_field_value_of(gid, fid)
+
+// group:common
+
+#define MLSCP_GF_COMMON_EOP /* ............. */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_END_OF_PACK) // End of Packet
+#define MLSCP_GF_COMMON_METHOD /* .......... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_METHOD)
+#define MLSCP_GF_COMMON_LOCATION /* ........ */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_LOCATION)
+#define MLSCP_GF_COMMON_VERSION /* ......... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_VERSION)
+#define MLSCP_GF_COMMON_STATUS_CODE /* ..... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_STATUS_CODE)
+#define MLSCP_GF_COMMON_STATUS_MSG /* ...... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_STATUS_MSG)
+#define MLSCP_GF_COMMON_TRANSACTION /* ..... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_TRANSACTION_ID)
+#define MLSCP_GF_COMMON_TIMESTAMP /* ....... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_TIMESTAMP)
+#define MLSCP_GF_COMMON_EOG /* ............. */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_END_OF_GROUP) // End of Group
+#define MLSCP_GF_COMMON_FLUSH /* ........... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_FLUSH)
+
+// group:led
+
+#define MLSCP_GF_LED_VIEW_POSITION /* ... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_LED, MLS_CP_FIELD_LED_VIEW_POSITION)
+#define MLSCP_GF_LED_VIEW_SIZE /* ....... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_LED, MLS_CP_FIELD_LED_VIEW_SIZE)
+#define MLSCP_GF_LED_PART_ITEMS /* ...... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_LED, MLS_CP_FIELD_LED_PART_ITEMS)
+#define MLSCP_GF_LED_PART_POSITION /* ... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_LED, MLS_CP_FIELD_LED_PART_POSITION)
+#define MLSCP_GF_LED_PART_SIZE /* ....... */ MLSCP_GROUP_FIELD(MLS_CP_GROUP_LED, MLS_CP_FIELD_LED_PART_SIZE)
 
 /*******************************************************************************
  * methods

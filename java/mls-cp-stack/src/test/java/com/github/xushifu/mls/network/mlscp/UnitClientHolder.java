@@ -15,13 +15,15 @@ public final class UnitClientHolder implements Closeable {
 
     public Client open() throws IOException {
 
+        final String host = "192.168.0.104";
+
         Client cl = this.client;
         if (cl != null) {
             return cl;
         }
 
         ClientBuilder builder = ClientBuilder.newInstance();
-        builder.setRemote(InetSocketAddress.createUnresolved("192.168.0.101", 7923));
+        builder.setRemote(InetSocketAddress.createUnresolved(host, 7923));
         builder.setLocal(InetSocketAddress.createUnresolved("0.0.0.0", 7928));
         builder.setTimeout(300 * 1000);
         cl = builder.open();

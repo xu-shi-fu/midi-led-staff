@@ -55,8 +55,10 @@ mls_error mls_cp_response_builder_build_and_send(mls_cp_response_builder *inst, 
 void mls_cp_response_builder_add_byte(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_byte value);
 void mls_cp_response_builder_add_bytes(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, const void *data, size_t len);
 void mls_cp_response_builder_add_string(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_string value);
+void mls_cp_response_builder_add_no_value(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field);
 
 void mls_cp_response_builder_add_argb(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_argb value);
+void mls_cp_response_builder_add_argb_array(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_argb *items, size_t items_size_in_byte);
 
 void mls_cp_response_builder_add_int8(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_int8 value);
 void mls_cp_response_builder_add_int16(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_int16 value);

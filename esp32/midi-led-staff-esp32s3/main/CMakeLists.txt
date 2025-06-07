@@ -4,6 +4,7 @@ idf_component_register(SRCS "mls_cp_mock_adapter.c" "mls_module.c" "mls_cp_serve
         "mls_settings.c" "mls_cp_udp_adapter.c" "mls_wifi.c" "mls_ws2812_led.c" "led_strip_encoder.c" "mls_tusb_midi.c"
         "mls_cp_block.c" "mls_cp_handlers.c" "mls_cp_response.c" "mls_cp_request.c"
       
+        "handlers/mlscp_get_ping.c"
         "handlers/mlscp_get_leds.c"
         "handlers/mlscp_post_leds.c"
 

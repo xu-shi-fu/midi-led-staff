@@ -8,6 +8,8 @@ import java.util.Map;
 public final class BlockType implements IntegerValue {
 
     public final static BlockType NONE = create(0, "none");
+    public final static BlockType NO_VALUE = NONE;
+
     public final static BlockType ARGB = create(0x41, "argb");
     public final static BlockType ARGB_ARRAY = create(0x42, "argb[]");
 

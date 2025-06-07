@@ -14,7 +14,9 @@
 typedef struct mls_engine_key_item_t
 {
 
-    mls_byte value; // 这里的取值为 styles[index] 中的 index
+    mls_byte key;      // MIDI 按键的值
+    mls_byte velocity; // 表示按键速率, 0 表示按键已释放
+    mls_byte style;    // 这里的取值为 styles[index] 中的 index
 
 } mls_engine_key_item;
 
@@ -22,9 +24,10 @@ typedef struct mls_engine_key_buffer_t
 {
     mls_revision revision;
 
-    mls_uint total;
-    mls_uint offset;
-    mls_uint length;
+    mls_uint total; // 总项数
+
+    size_t total_size; // 全部项占用的字节
+    size_t unit_size;  // 单项占用的字节
 
     mls_engine_key_item items[128]; // 与 led-buffer 的 128 个 items 一一对应
 
@@ -43,9 +46,10 @@ typedef struct mls_engine_style_buffer_t
 {
     mls_revision revision;
 
-    uint total;
-    uint offset;
-    uint length;
+    mls_uint total; // 样式的总个数
+
+    size_t total_size; // 全部项占用的字节
+    size_t unit_size;  // 单项占用的字节
 
     mls_engine_style_item items[256];
 
@@ -53,25 +57,16 @@ typedef struct mls_engine_style_buffer_t
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// typedef struct mls_engine_led_item_t
-// {
-//     mls_byte r;
-//     mls_byte g;
-//     mls_byte b;
-// } mls_engine_led_item;
-
 typedef struct mls_engine_led_buffer_t
 {
+    mls_revision revision; // 表示总体的改变
 
-    mls_uint total;
-    mls_uint offset;
-    mls_uint length;
-    size_t unit_size;
-    size_t total_size;
+    mls_uint total;         // LED 的总个数
+    mls_uint view_position; // 使用中的首个 LED 的 index
+    mls_uint view_size;     // 使用中的 LED 的个数
 
-    mls_revision revision;        // 表示总体的改变
-    mls_revision revision_config; // 表示配置已改变
-    mls_revision revision_data;   // 表示数据已改变
+    size_t unit_size;  // 单项占用的字节
+    size_t total_size; // 全部项占用的字节
 
     mls_argb items[128]; // 与 key-buffer 的 128 个 items 一一对应
 
@@ -84,6 +79,8 @@ mls_error mls_engine_led_buffer_init_as_demo(mls_engine_led_buffer *inst);
 
 typedef struct mls_engine_t
 {
+
+    mls_byte mode; // current mode
 
     mls_engine_key_buffer key_buffer;
 
