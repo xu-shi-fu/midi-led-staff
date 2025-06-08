@@ -9,26 +9,26 @@ import org.junit.Test;
 import com.github.xushifu.mls.utils.IOUtils;
 import com.github.xushifu.mls.utils.TimeUtils;
 
-public final class UnitClientHolder implements Closeable {
+public final class TestingUserAgentHolder implements Closeable {
 
-    private Client client;
+    private UserAgent useragent;
 
-    public Client open() throws IOException {
+    public UserAgent open() throws IOException {
 
         final String host = "192.168.0.104";
 
-        Client cl = this.client;
+        UserAgent cl = this.useragent;
         if (cl != null) {
             return cl;
         }
 
-        ClientBuilder builder = ClientBuilder.newInstance();
+        UserAgentBuilder builder = UserAgentBuilder.newInstance();
         builder.setRemote(InetSocketAddress.createUnresolved(host, 7923));
         builder.setLocal(InetSocketAddress.createUnresolved("0.0.0.0", 7928));
         builder.setTimeout(300 * 1000);
         cl = builder.open();
 
-        this.client = cl;
+        this.useragent = cl;
         return cl;
     }
 
@@ -37,8 +37,8 @@ public final class UnitClientHolder implements Closeable {
 
         TimeUtils.sleep(6 * 1000);
 
-        final Client cl = this.client;
-        this.client = null;
+        final UserAgent cl = this.useragent;
+        this.useragent = null;
         if (cl == null) {
             return;
         }
@@ -52,11 +52,11 @@ public final class UnitClientHolder implements Closeable {
     }
 
     @Test
-    public void testClient() throws Exception {
-        UnitClientHolder holder = new UnitClientHolder();
+    public void testUserAgent() throws Exception {
+        TestingUserAgentHolder holder = new TestingUserAgentHolder();
         try {
 
-            Client cl = holder.open();
+            UserAgent cl = holder.open();
             Request req = cl.createNewRequest();
 
             req.setMethod(Method.GET);

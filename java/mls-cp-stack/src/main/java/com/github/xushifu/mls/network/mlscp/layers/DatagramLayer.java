@@ -5,7 +5,6 @@ import java.net.DatagramSocket;
 import java.net.SocketAddress;
 
 import com.github.xushifu.mls.network.mlscp.ByteArraySlice;
-import com.github.xushifu.mls.network.mlscp.Client;
 import com.github.xushifu.mls.network.mlscp.Layer;
 import com.github.xushifu.mls.network.mlscp.Request;
 import com.github.xushifu.mls.network.mlscp.RxFilterChain;

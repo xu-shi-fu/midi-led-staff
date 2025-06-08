@@ -12,10 +12,10 @@ public class AccessLedTest {
 
     @Test
     public void testGetLedState() throws Exception {
-        UnitClientHolder holder = new UnitClientHolder();
+        TestingUserAgentHolder holder = new TestingUserAgentHolder();
         try {
 
-            Client cl = holder.open();
+            UserAgent cl = holder.open();
             RequestBuilder rb = new RequestBuilder(cl);
 
             rb.setMethod(Method.GET).setLocation(Location.LEDS);
@@ -45,14 +45,14 @@ public class AccessLedTest {
 
     @Test
     public void testSetLedState() throws Exception {
-        UnitClientHolder holder = new UnitClientHolder();
+        TestingUserAgentHolder holder = new TestingUserAgentHolder();
 
         int count = 36;
         ARGB[] items = new ARGB[count];
 
         try {
 
-            Client cl = holder.open();
+            UserAgent cl = holder.open();
             RequestBuilder rb = new RequestBuilder(cl);
 
             rb.setMethod(Method.POST).setLocation(Location.LEDS);

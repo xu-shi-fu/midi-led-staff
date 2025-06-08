@@ -223,6 +223,7 @@ mls_string mls_cp_group_field_stringify(mls_cp_group_id group, mls_cp_field_id f
 mls_string mls_cp_status_stringify(mls_cp_status_code code);
 
 mls_uint16 mls_cp_version_to_uint16(mls_cp_version *version);
+mls_cp_version mls_cp_version_impl(); // 获取当前实现的协议版本
 
 void mls_argb_to_rgb(mls_argb *src, mls_rgb *dest);
 void mls_rgb_to_argb(mls_rgb *src, mls_argb *dest);

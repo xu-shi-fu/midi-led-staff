@@ -8,19 +8,21 @@ import java.util.List;
 
 import com.github.xushifu.mls.network.mlscp.layers.CodecLayer;
 import com.github.xushifu.mls.network.mlscp.layers.DatagramLayer;
+import com.github.xushifu.mls.network.mlscp.layers.HandlerLayer;
 import com.github.xushifu.mls.network.mlscp.layers.MessageLayer;
 import com.github.xushifu.mls.network.mlscp.layers.MonitorLayer;
 import com.github.xushifu.mls.network.mlscp.layers.TransactionLayer;
 
-public class DefaultClientBuilderFactory implements ClientBuilderFactory {
+public class DefaultUserAgentBuilderFactory implements UserAgentBuilderFactory {
 
-    DefaultClientBuilderFactory() {
+    DefaultUserAgentBuilderFactory() {
     }
 
     @Override
-    public ClientBuilder createBuilder() {
+    public UserAgentBuilder createBuilder() {
         MyBuilder builder = new MyBuilder();
 
+        builder.addLayer(new HandlerLayer());
         builder.addLayer(new MonitorLayer());
         builder.addLayer(new MessageLayer());
         builder.addLayer(new TransactionLayer());
@@ -44,26 +46,26 @@ public class DefaultClientBuilderFactory implements ClientBuilderFactory {
         }
     }
 
-    private static class MyBuilder extends ClientBuilder {
+    private static class MyBuilder extends UserAgentBuilder {
 
         @Override
-        public Client open() throws IOException {
+        public UserAgent open() throws IOException {
 
             Stack stack = new Stack();
-            MyClient client = new MyClient(stack);
+            MyUA ua = new MyUA(stack);
             List<Layer> layers = this.getLayers(true);
 
             stack.rx = this.createRxFilterChain(layers);
             stack.tx = this.createTxFilterChain(layers);
             stack.dispatcher = new MyDispatcher(stack);
             stack.layers = layers;
-            stack.client = client;
+            stack.useragent = ua;
             stack.local = this.getLocal();
             stack.remote = this.getRemote();
             stack.timeout = this.getTimeout();
 
-            client.open();
-            return client;
+            ua.open();
+            return ua;
         }
 
         private static List<Layer> reverse(List<Layer> layers) {
@@ -91,11 +93,11 @@ public class DefaultClientBuilderFactory implements ClientBuilderFactory {
         }
     }
 
-    private static class MyClient implements Client {
+    private static class MyUA implements UserAgent {
 
         private final Stack stack;
 
-        public MyClient(Stack s) {
+        public MyUA(Stack s) {
             this.stack = s;
         }
 

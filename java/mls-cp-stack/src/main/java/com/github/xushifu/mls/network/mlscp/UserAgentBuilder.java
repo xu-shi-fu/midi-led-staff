@@ -6,14 +6,14 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ClientBuilder {
+public abstract class UserAgentBuilder {
 
     private SocketAddress remote;
     private SocketAddress local;
     private List<Layer> layers;
     private int timeout;
 
-    protected ClientBuilder() {
+    protected UserAgentBuilder() {
 
         this.local = InetSocketAddress.createUnresolved("0.0.0.0", 1001);
         this.remote = InetSocketAddress.createUnresolved("0.0.0.0", 1002);
@@ -21,12 +21,12 @@ public abstract class ClientBuilder {
 
     }
 
-    public static ClientBuilder newInstance() {
-        ClientBuilderFactory factory = new DefaultClientBuilderFactory();
+    public static UserAgentBuilder newInstance() {
+        UserAgentBuilderFactory factory = new DefaultUserAgentBuilderFactory();
         return factory.createBuilder();
     }
 
-    public abstract Client open() throws IOException;
+    public abstract UserAgent open() throws IOException;
 
     public List<Layer> getLayers(boolean autoCreate) {
         List<Layer> list = this.layers;
@@ -37,7 +37,7 @@ public abstract class ClientBuilder {
         return list;
     }
 
-    public ClientBuilder addLayer(Layer l) {
+    public UserAgentBuilder addLayer(Layer l) {
         if (l != null) {
             List<Layer> all = this.getLayers(true);
             all.add(l);
@@ -45,7 +45,7 @@ public abstract class ClientBuilder {
         return this;
     }
 
-    public ClientBuilder config(Configuration cfg) {
+    public UserAgentBuilder config(Configuration cfg) {
         this.local = InetSocketAddress.createUnresolved("0.0.0.0", cfg.localPort);
         this.remote = InetSocketAddress.createUnresolved(cfg.remoteHost, cfg.remotePort);
         return this;

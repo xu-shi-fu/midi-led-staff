@@ -685,13 +685,22 @@ void mls_cp_block_array_entity_release(mls_cp_block_array_entity *entity)
  * other
  */
 
+// 获取当前实现的协议版本
+mls_cp_version mls_cp_version_impl()
+{
+    mls_cp_version ver;
+    ver.major = CP_VERSION_MAJOR;
+    ver.minor = CP_VERSION_MINOR;
+    return ver;
+}
+
 mls_uint16 mls_cp_version_to_uint16(mls_cp_version *version)
 {
     if (version)
     {
-        mls_uint16 v1 = version->major;
-        mls_uint16 v2 = version->minor;
-        return ((v1 << 8) | (v2));
+        mls_uint16 ma = version->major;
+        mls_uint16 mi = version->minor;
+        return ((ma << 8) | (mi));
     }
     return 0;
 }

@@ -12,7 +12,7 @@ public class Stack {
     public Dispatcher dispatcher;
     public List<Layer> layers;
     public StackRuntime runtime;
-    public Client client;
+    public UserAgent useragent;
     public int timeout;
 
 }

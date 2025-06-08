@@ -11,6 +11,7 @@ public final class Request {
     private Method method;
     private Location location;
     private SocketAddress remote;
+    private long timestamp;
     private ByteArraySlice data;
     private List<Block> blocks;
 
@@ -68,6 +69,14 @@ public final class Request {
 
     public void setData(ByteArraySlice data) {
         this.data = data;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
 }

@@ -12,7 +12,7 @@
 #define CP_RX_BLOCK_ARRAY_CAPACITY 16
 #define CP_TX_BLOCK_ARRAY_CAPACITY 16
 
-#define CP_VERSION_MAJOR 1
-#define CP_VERSION_MINOR 0
+#define CP_VERSION_MAJOR 0
+#define CP_VERSION_MINOR 1
 
 #endif // __mls_config_h__

@@ -3,7 +3,7 @@ package com.github.xushifu.mls.network.mlscp;
 import java.io.Closeable;
 import java.net.SocketAddress;
 
-public interface Client extends Closeable {
+public interface UserAgent extends Closeable {
 
     Request createNewRequest();
 

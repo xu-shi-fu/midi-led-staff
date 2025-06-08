@@ -10,6 +10,7 @@ public final class Response {
     private ProtocolVersion version;
     private Status status;
     private SocketAddress remote;
+    private long timestamp;
     private ByteArraySlice data;
     private List<Block> blocks;
 
@@ -59,6 +60,14 @@ public final class Response {
 
     public void setData(ByteArraySlice data) {
         this.data = data;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
 }

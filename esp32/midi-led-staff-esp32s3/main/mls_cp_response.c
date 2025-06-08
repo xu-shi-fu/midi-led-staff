@@ -23,6 +23,8 @@ mls_error mls_cp_response_builder_init_with_context(mls_cp_response_builder *ins
         return mls_errors_make(500, "mls_cp_response_builder_init_with_context: param(s) is nil");
     }
 
+    mls_error err;
+
     mls_cp_response *resp = ctx->response;
     mls_cp_request *req = ctx->request;
     mls_cp_dispatcher *disp = ctx->dispatcher;
@@ -35,7 +37,19 @@ mls_error mls_cp_response_builder_init_with_context(mls_cp_response_builder *ins
     }
 
     mls_buffer *buffer = resp->buffer;
-    return mls_cp_response_builder_init(inst, buffer);
+    err = mls_cp_response_builder_init(inst, buffer);
+    if (err)
+    {
+        return err;
+    }
+
+    inst->to = req->remote;
+    inst->status.code = MLS_CP_STATUS_OK;
+    inst->status.message = "OK";
+    inst->version = mls_cp_version_impl();
+    inst->transaction = ctx->transaction;
+
+    return NULL;
 }
 
 mls_cp_block_head mls_cp_response_builder_prepare_head(mls_cp_response_builder *inst, mls_cp_group_id group, mls_cp_field_id field, mls_cp_block_type b_type)

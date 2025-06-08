@@ -16,12 +16,12 @@ public class RequestBuilder {
 
     private Method method;
     private Location location;
-    private final Client client;
+    private final UserAgent useragent;
 
     private final List<Block> additions;
 
-    public RequestBuilder(Client cl) {
-        this.client = cl;
+    public RequestBuilder(UserAgent cl) {
+        this.useragent = cl;
         this.additions = new ArrayList<>();
     }
 
@@ -36,7 +36,7 @@ public class RequestBuilder {
     }
 
     public Request create() {
-        Request req = this.client.createNewRequest();
+        Request req = this.useragent.createNewRequest();
         req.setLocation(this.location);
         req.setMethod(this.method);
         req.setBlocks(this.additions);
