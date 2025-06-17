@@ -27,7 +27,8 @@ public class MonitorLayer implements Layer {
         SocketAddress remote = resp.getRemote();
         String tag = "rx from(" + remote + ')';
 
-        log(tag, resp.getData());
+        logPayload(tag, resp.getData());
+        logResponse(resp);
         next.receive(ctx);
     }
 
@@ -40,10 +41,18 @@ public class MonitorLayer implements Layer {
         SocketAddress remote = req.getRemote();
         String tag = "tx to(" + remote + ")";
 
-        log(tag, req.getData());
+        logPayload(tag, req.getData());
     }
 
-    private void log(String tag, ByteArraySlice payload) {
+    private void logResponse(Response resp) {
+        Request req = resp.getContext().getRequest();
+        long t1 = req.getTimestamp();
+        long t2 = resp.getTimestamp();
+        long cost = t2 - t1;
+        logger.info(this + ".cost = " + cost + " ms");
+    }
+
+    private void logPayload(String tag, ByteArraySlice payload) {
 
         if (tag == null || payload == null) {
             logger.warn(this + ".log(): tag|payload is nil");

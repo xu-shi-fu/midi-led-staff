@@ -16,8 +16,9 @@ public class RequestBuilder {
 
     private Method method;
     private Location location;
-    private final UserAgent useragent;
+    private Request request;
 
+    private final UserAgent useragent;
     private final List<Block> additions;
 
     public RequestBuilder(UserAgent cl) {
@@ -35,8 +36,41 @@ public class RequestBuilder {
         return this;
     }
 
+    public Method getMethod() {
+        return method;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public Request getRequest() {
+        return request;
+    }
+
+    public void setRequest(Request req) {
+        if (req == null) {
+            return;
+        }
+        this.method = req.getMethod();
+        this.location = req.getLocation();
+        this.request = req;
+    }
+
+    public UserAgent getUseragent() {
+        return useragent;
+    }
+
+    public List<Block> getAdditions() {
+        return additions;
+    }
+
     public Request create() {
-        Request req = this.useragent.createNewRequest();
+        Request req = this.request;
+        if (req == null) {
+            req = this.useragent.createNewRequest();
+            this.request = req;
+        }
         req.setLocation(this.location);
         req.setMethod(this.method);
         req.setBlocks(this.additions);

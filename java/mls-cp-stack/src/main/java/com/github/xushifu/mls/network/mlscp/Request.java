@@ -5,7 +5,7 @@ import java.util.List;
 
 public final class Request {
 
-    public final TransactionContext context;
+    private final TransactionContext context;
 
     private ProtocolVersion version;
     private Method method;

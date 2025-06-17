@@ -102,7 +102,7 @@ public final class Decoder {
         }
 
         ByteArraySlice readBlockBodyData(BlockHead head) throws IOException {
-            final int block_size = head.getSize();
+            final int block_size = head.getSize() & 0x00ff;
             final int head_size = 4;
             final int body_size = block_size - head_size;
             return this.readByteArray(body_size);
@@ -136,7 +136,7 @@ public final class Decoder {
             final byte[] buf = this.buffer;
 
             if (p0 <= p1 && p1 < p2) {
-                int b = buf[p1];
+                int b = buf[p1] & 0x00ff;
                 this.current = p1 + 1;
                 return b;
             }

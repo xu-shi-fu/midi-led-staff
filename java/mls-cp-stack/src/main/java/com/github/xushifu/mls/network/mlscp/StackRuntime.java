@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 import org.slf4j.Logger;
@@ -65,6 +66,11 @@ public final class StackRuntime implements Runnable {
     public void run() {
         try {
             this.run1();
+
+        } catch (SocketException e) {
+            if (!this.stopping) {
+                e.printStackTrace();
+            }
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(this + ":error:", e);

@@ -12,7 +12,24 @@
 
     <properties>
         <mls.version>0.0.1</mls.version>
+        <starter4j.version>0.0.6</starter4j.version>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>jdk-11</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                <maven.compiler.source>11</maven.compiler.source>
+                <maven.compiler.target>11</maven.compiler.target>
+                <maven.compiler.compilerVersion>11</maven.compiler.compilerVersion>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencyManagement>
         <dependencies>
@@ -28,7 +45,6 @@
                 <version>${mls.version}</version>
             </dependency>
 
-
             <dependency>
                 <groupId>com.github.xu-shi-fu.midi-led-staff</groupId>
                 <artifactId>mls-client-gui</artifactId>
@@ -36,6 +52,17 @@
             </dependency>
 
             <!-- others -->
+
+            <dependency>
+                <groupId>com.bitwormhole.starter4j</groupId>
+                <artifactId>starter4j-starter</artifactId>
+                <version>${starter4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bitwormhole.starter4j</groupId>
+                <artifactId>starter4j-swing</artifactId>
+                <version>${starter4j.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>junit</groupId>
@@ -48,6 +75,12 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>2.0.9</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.3.14</version>
             </dependency>
 
         </dependencies>

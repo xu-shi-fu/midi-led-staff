@@ -62,7 +62,7 @@ public final class TestingUserAgentHolder implements Closeable {
             req.setMethod(Method.GET);
             req.setLocation(Location.PING);
 
-            cl.getDispatcher().dispatch(req.context);
+            cl.getDispatcher().dispatch(req.getContext());
 
         } finally {
             IOUtils.close(holder);

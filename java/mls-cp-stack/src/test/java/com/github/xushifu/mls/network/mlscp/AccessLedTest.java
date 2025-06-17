@@ -32,11 +32,11 @@ public class AccessLedTest {
 
             Request req = rb.create();
 
-            req.context.setHandler((ctx) -> {
+            req.getContext().setHandler((ctx) -> {
                 logger.debug("ctx.class = " + ctx.getClass());
             });
 
-            cl.getDispatcher().dispatch(req.context);
+            cl.getDispatcher().dispatch(req.getContext());
 
         } finally {
             IOUtils.close(holder);
@@ -61,7 +61,7 @@ public class AccessLedTest {
             rb.addArgbArray(BlockField.LED_PART_ITEMS, items);
 
             Request req = rb.create();
-            cl.getDispatcher().dispatch(req.context);
+            cl.getDispatcher().dispatch(req.getContext());
 
         } finally {
             IOUtils.close(holder);

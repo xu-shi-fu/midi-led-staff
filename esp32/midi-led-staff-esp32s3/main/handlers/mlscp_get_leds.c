@@ -54,7 +54,7 @@ mls_error mlscp_get_leds(mls_cp_context *ctx, mls_cp_request *req)
     mls_cp_status_code code = MLS_CP_STATUS_OK;
     builder->status.code = code;
     builder->status.message = mls_cp_status_stringify(code);
-    builder->to = req->remote; 
+    builder->to = req->remote;
     // builder->transaction = tid  ;
 
     return mls_cp_response_builder_build_and_send(builder, ctx);
@@ -213,7 +213,34 @@ mls_error mlscp_get_leds_send_part_items_1(mlscp_get_leds_handling *handling, ml
     mls_uint n_part_pos = mls_cp_block_get_body_uint(b_part_pos);
     mls_uint n_part_size = mls_cp_block_get_body_uint(b_part_size);
 
-    return mlscp_get_leds_send_part_items_2(handling, n_part_pos, n_part_size);
+    // 每一组最多 32-leds (256/4= 64), 如果超过需要拆分
+
+    mls_uint pos, end, count, limit;
+    mls_int ttl; // 用于防止死循环
+    mls_error err;
+
+    limit = 32;
+    ttl = 5;
+    pos = n_part_pos;
+    end = n_part_pos + n_part_size;
+
+    for (; (pos < end) && (ttl > 0); ttl--)
+    {
+        count = end - pos;
+        if (count > limit)
+        {
+            count = limit;
+        }
+        err = mlscp_get_leds_send_part_items_2(handling, pos, count);
+        if (err)
+        {
+            return err;
+        }
+        pos += count;
+    }
+
+    return NULL;
+    // return mlscp_get_leds_send_part_items_2(handling, n_part_pos, n_part_size);
 }
 
 mls_error mlscp_get_leds_send_part_items_2(mlscp_get_leds_handling *handling, mls_uint part_pos, mls_uint part_size)
@@ -241,6 +268,7 @@ mls_error mlscp_get_leds_send_part_items_2(mlscp_get_leds_handling *handling, ml
         mls_cp_response_builder_add_no_value(builder, MLS_CP_GROUP_COMMON, MLS_CP_FIELD_COMMON_FLUSH);
     }
 
+    ESP_LOGI(TAG, "mlscp_get_leds_send_part_items_2(): pos1=%d, pos2=%d", pos1, pos2);
     return NULL;
 }
 
