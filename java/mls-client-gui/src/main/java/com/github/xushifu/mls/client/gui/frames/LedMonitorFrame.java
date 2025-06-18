@@ -23,7 +23,6 @@ import com.github.xushifu.mls.client.core.leds.LEDStateBuffer;
 import com.github.xushifu.mls.client.gui.SwingClientContext;
 import com.github.xushifu.mls.client.gui.utils.Colors;
 import com.github.xushifu.mls.client.gui.widgets.LedStateView;
-import com.github.xushifu.mls.client.gui.widgets.LedStateView.Data;
 
 public class LedMonitorFrame extends JFrame {
 
@@ -32,6 +31,7 @@ public class LedMonitorFrame extends JFrame {
     private final LedStateView[] mLedViews;
     private final JButton mButtonPush = new JButton("Push");
     private final JButton mButtonPull = new JButton("Pull");
+    private final JButton mButtonRefresh = new JButton("Refresh");
 
     private LedMonitorFrame(Goal goal) {
         int count = 128;
@@ -58,9 +58,29 @@ public class LedMonitorFrame extends JFrame {
         this.setSize(600, 360);
 
         this.onCreateLayout();
+        this.onCreateBindData();
 
         this.mButtonPush.addActionListener((ae) -> onClickButtonPush());
         this.mButtonPull.addActionListener((ae) -> onClickButtonPull());
+        this.mButtonRefresh.addActionListener((ae) -> onClickButtonRefresh());
+    }
+
+    private void onCreateBindData() {
+
+        final SwingClientContext scc = this.getSwingClientContext();
+        final MLSClientServices services = scc.getClient().getServices();
+        final LEDStateBuffer buffer = services.getLEDService().getStateBuffer();
+        final LEDState[] state_list = buffer.getDiodes();
+        final LedStateView[] view_list = this.mLedViews;
+        final int count = Math.min(state_list.length, view_list.length);
+
+        for (int i = 0; i < count; i++) {
+            LEDState state = state_list[i];
+            LedStateView view = view_list[i];
+            state.setIndex(i);
+            view.setState(state);
+            view.updateUI();
+        }
     }
 
     private void onCreateLayout() {
@@ -75,18 +95,20 @@ public class LedMonitorFrame extends JFrame {
         LedStateView[] list = this.mLedViews;
         for (int i = 0; i < list.length; ++i) {
             LedStateView view = new LedStateView();
-            Data data = view.getData();
-            data.index = i;
-            data.colorRx = Color.red;
-            data.colorTx = Color.blue;
-            view.updateUI();
             list[i] = view;
             p2.add(view);
         }
         p1.add(this.mButtonPush);
         p1.add(this.mButtonPull);
+        p1.add(this.mButtonRefresh);
         this.add(p1, BorderLayout.NORTH);
         this.add(p2, BorderLayout.CENTER);
+    }
+
+    private void onClickButtonRefresh() {
+        final SwingClientContext scc = this.getSwingClientContext();
+        final MLSClientServices services = scc.getClient().getServices();
+        this.checkout(services);
     }
 
     private void onClickButtonPull() {
@@ -118,40 +140,51 @@ public class LedMonitorFrame extends JFrame {
     }
 
     private void onPullOK(MLSClientServices services) {
+        this.checkout(services);
+    }
 
-        final LEDStateBuffer buffer = services.getLEDService().getStateBuffer();
-        final LEDState[] src = buffer.getDiodes();
-        final LedStateView[] dst = this.mLedViews;
-        final int count = Math.min(src.length, dst.length);
+    private void checkout(MLSClientServices services) {
 
-        for (int i = 0; i < count; ++i) {
-            LEDState data1 = src[i];
-            LedStateView view = dst[i];
-            if (data1 == null || view == null) {
-                continue;
-            }
-            LedStateView.Data data2 = view.getData();
-            Color color = Colors.toColor(data1.getRx());
-            data2.colorRx = color;
-            data2.colorMx = color;
-            data2.colorTx = color;
+        // final LEDStateBuffer buffer = services.getLEDService().getStateBuffer();
+        // final LEDState[] src = buffer.getDiodes();
+        // final int count = Math.min(src.length, dst.length);
+
+        final LedStateView[] vlist = this.mLedViews;
+
+        // for (int i = 0; i < count; ++i) {
+        // LEDState data1 = src[i];
+        // LedStateView view = dst[i];
+        // if (data1 == null || view == null) {
+        // continue;
+        // }
+        // LedStateView.Data data2 = view.getData();
+        // Color colorRx = Colors.toColor(data1.getRx());
+        // Color colorTx = Colors.toColor(data1.getTx());
+        // data2.colorRx = colorRx;
+        // data2.colorMx = colorRx;
+        // data2.colorTx = colorTx;
+
+        // view.updateUI();
+        // }
+
+        for (LedStateView view : vlist) {
             view.updateUI();
         }
     }
 
     private void onPushPreparing(MLSClientServices services) {
 
-        final LEDStateBuffer buffer = services.getLEDService().getStateBuffer();
-        final LEDState[] dst = buffer.getDiodes();
-        final LedStateView[] src = this.mLedViews;
-        final int count = Math.min(dst.length, src.length);
+        // final LEDStateBuffer buffer = services.getLEDService().getStateBuffer();
+        // final LEDState[] dst = buffer.getDiodes();
+        // final LedStateView[] src = this.mLedViews;
+        // final int count = Math.min(dst.length, src.length);
 
-        for (int i = 0; i < count; i++) {
-            LedStateView view = src[i];
-            LEDState state = dst[i];
-            Color color = view.getData().colorTx;
-            state.setTx(Colors.toARGB(color));
-        }
+        // for (int i = 0; i < count; i++) {
+        // LedStateView view = src[i];
+        // LEDState state = dst[i];
+        // Color color = view.getData().colorTx;
+        // state.setTx(Colors.toARGB(color));
+        // }
     }
 
     private void onPushOK() {
