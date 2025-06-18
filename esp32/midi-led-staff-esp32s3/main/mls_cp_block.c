@@ -325,6 +325,21 @@ mls_uint mls_cp_block_get_body_uint(mls_cp_block *block)
     return 0;
 }
 
+mls_argb_array_slice mls_cp_block_get_body_argb_array(mls_cp_block *block)
+{
+    mls_argb_array_slice slice;
+
+    size_t unit_size = sizeof(mls_argb);
+    size_t head_size = sizeof(mls_cp_block_head);
+    size_t total_size = block->head.size;
+    size_t body_size = total_size - head_size;
+
+    slice.count = body_size / unit_size;
+    slice.array = (void *)(block->body);
+
+    return slice;
+}
+
 /*******************************************************************************
  * mls_cp_block_writer
  */

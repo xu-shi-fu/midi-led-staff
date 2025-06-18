@@ -181,7 +181,9 @@ mls_uint32 mls_cp_block_get_body_uint32(mls_cp_block *block);
 mls_uint64 mls_cp_block_get_body_uint64(mls_cp_block *block);
 mls_uint mls_cp_block_get_body_uint(mls_cp_block *block); // 可以是任意 8|16|32|64 位的 uint
 
-mls_uint64 mls_cp_block_get_body_uint64(mls_cp_block *block);
+// mls_uint64 mls_cp_block_get_body_uint64(mls_cp_block *block);
+
+mls_argb_array_slice mls_cp_block_get_body_argb_array(mls_cp_block *block);
 
 /**************************************
  * mls_cp_block_reader

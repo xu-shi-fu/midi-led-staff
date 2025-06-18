@@ -81,6 +81,32 @@ public final class LEDServiceImpl implements LEDService {
         }
     }
 
+    private void preparePushRequest(PushOptions src, DoPostLedsCodec.Params dst) {
+
+        final LEDState[] arr2 = this.getStateBuffer().getDiodes();
+        final boolean[] arr1 = src.leds;
+        final ARGB[] arr3 = dst.items;
+
+        // check length of arrays
+        final int want_length = 128;
+        final int[] lengths = { arr1.length, arr2.length, arr3.length };
+        for (int len : lengths) {
+            if (len != want_length) {
+                throw new RuntimeException("bad array length, want:" + want_length);
+            }
+        }
+
+        for (int i = 0; i < want_length; i++) {
+            if (arr1[i]) {
+                LEDState item = arr2[i];
+                arr3[i] = item.getTx();
+            }
+        }
+
+        dst.viewPosition = src.viewPosition;
+        dst.viewSize = src.viewSize;
+    }
+
     @Override
     public void push(PushOptions options) {
 
@@ -94,6 +120,7 @@ public final class LEDServiceImpl implements LEDService {
         final UserAgent agent = context.getUseragent();
 
         params.agent = agent;
+        this.preparePushRequest(options, params);
         Request req = codec.encodeRequest(params);
         TransactionContext tc = req.getContext();
 

@@ -204,6 +204,13 @@ typedef struct mls_argb_t
 
 } mls_argb;
 
+typedef struct mls_argb_array_slice_t
+{
+    mls_argb *array;
+    mls_uint count;
+
+} mls_argb_array_slice;
+
 // 注意: 这个结构中的字段顺序是按照 ws2812 的时序 "G-R-B" 排列的
 typedef struct mls_rgb_t
 {

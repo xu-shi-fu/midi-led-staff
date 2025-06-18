@@ -106,11 +106,16 @@ mls_error mls_led_start(mls_led_context *ctx)
 void mls_led_flush(mls_led_context *ctx, rmt_working_context *working)
 {
     mls_buffer_slice data_holder;
-    mls_buffer_slice *data = mls_led_context_prepare_data(ctx, &data_holder);
-    if (data)
+    mls_buffer_slice *slice = mls_led_context_prepare_data(ctx, &data_holder);
+    if (slice)
     {
-        ESP_ERROR_CHECK(rmt_transmit(working->channel, working->encoder, data->data, data->length, working->config));
-        ESP_ERROR_CHECK(rmt_tx_wait_all_done(working->channel, portMAX_DELAY));
+        const void *payload = slice->data;
+        size_t size = slice->length;
+        if (payload && size > 0)
+        {
+            ESP_ERROR_CHECK(rmt_transmit(working->channel, working->encoder, payload, size, working->config));
+            ESP_ERROR_CHECK(rmt_tx_wait_all_done(working->channel, portMAX_DELAY));
+        }
     }
 }
 

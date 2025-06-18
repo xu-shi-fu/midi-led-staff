@@ -139,6 +139,21 @@ public class LedMonitorFrame extends JFrame {
         }
     }
 
+    private void onPushPreparing(MLSClientServices services) {
+
+        final LEDStateBuffer buffer = services.getLEDService().getStateBuffer();
+        final LEDState[] dst = buffer.getDiodes();
+        final LedStateView[] src = this.mLedViews;
+        final int count = Math.min(dst.length, src.length);
+
+        for (int i = 0; i < count; i++) {
+            LedStateView view = src[i];
+            LEDState state = dst[i];
+            Color color = view.getData().colorTx;
+            state.setTx(Colors.toARGB(color));
+        }
+    }
+
     private void onPushOK() {
     }
 
@@ -167,12 +182,16 @@ public class LedMonitorFrame extends JFrame {
         final MLSClientServices services = scc.getClient().getServices();
         final LEDService.PushOptions opt = new LEDService.PushOptions();
 
+        this.onPushPreparing(services);
+
+        opt.viewPosition = 0;
+        opt.viewSize = 128;
+        opt.addPart(0, 128);
+
         final JDialog dlg = this.displayWorkingDialog("pushing ...");
 
         Promise.init(pc, Long.class).Try(() -> {
-
             services.getLEDService().push(opt);
-
             return new Result<>(Long.valueOf(0));
         }).Then((res) -> {
             return res;
@@ -183,7 +202,6 @@ public class LedMonitorFrame extends JFrame {
             dlg.dispose();
             return res;
         }).start();
-
     }
 
     public static FrameRegistration registration() {
