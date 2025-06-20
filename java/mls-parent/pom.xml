@@ -51,6 +51,12 @@
                 <version>${mls.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.github.xu-shi-fu.midi-led-staff</groupId>
+                <artifactId>mls-musical</artifactId>
+                <version>${mls.version}</version>
+            </dependency>
+
             <!-- others -->
 
             <dependency>

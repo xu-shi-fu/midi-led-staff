@@ -21,6 +21,7 @@
         <module>mls-cp-stack</module>
         <module>mls-client-core</module>
         <module>mls-client-gui</module>
+        <module>mls-musical</module>
     </modules>
 
 </project>

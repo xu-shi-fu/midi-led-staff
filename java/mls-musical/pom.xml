@@ -11,25 +11,10 @@
         <relativePath>./../mls-parent</relativePath>
     </parent>
 
-    <artifactId>mls-client-core</artifactId>
+    <artifactId>mls-musical</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
-        <dependency>
-            <groupId>com.github.xu-shi-fu.midi-led-staff</groupId>
-            <artifactId>mls-cp-stack</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.xu-shi-fu.midi-led-staff</groupId>
-            <artifactId>mls-musical</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.bitwormhole.starter4j</groupId>
-            <artifactId>starter4j-starter</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
