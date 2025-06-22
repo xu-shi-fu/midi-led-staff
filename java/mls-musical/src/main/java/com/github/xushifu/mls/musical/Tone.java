@@ -24,6 +24,14 @@ public final class Tone {
 
     public final static Tone B = create(11, 'B', false);
 
+    /// flat tones (aliases)
+
+    public final static Tone DF = CS;
+    public final static Tone EF = DS;
+    public final static Tone GF = FS;
+    public final static Tone AF = GS;
+    public final static Tone BF = AS;
+
     /***
      * 返回所有的 12个 音调
      */
