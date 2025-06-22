@@ -11,9 +11,9 @@ public class KeyboardTest {
     @Test
     public void testKeyboard128AllKeys() {
 
-        Key[] all = Keyboard128.allKeys();
+        Key[] all = Midi128Keys.allKeys();
         for (Key key : all) {
-            String str = KeyLogger.stringify(key);
+            String str = key + "";
             logger.info(str);
         }
 

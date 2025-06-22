@@ -70,7 +70,7 @@ public final class Group {
 
     @Override
     public String toString() {
-        return this.name;
+        return "[Group " + this.number + "]";
     }
 
     /***
@@ -99,7 +99,7 @@ public final class Group {
     private Group(int idx) {
 
         final int num = index2number(idx);
-        String txt = "key-group-" + num;
+        String txt = "key-group" + num;
 
         if (idx < 0) {
             txt = "key-group-none";

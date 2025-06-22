@@ -5,18 +5,6 @@ package com.github.xushifu.mls.musical;
  */
 public final class Key {
 
-    public final static class Builder {
-
-        public int index;
-        public Group group;
-        public Tone tone;
-        public float frequency;
-
-        public Key build() {
-            return new Key(this);
-        }
-    }
-
     public int getIndex() {
         return index;
     }
@@ -29,39 +17,62 @@ public final class Key {
         return tone;
     }
 
+    public int getMidiNumber() {
+        return this.index;
+    }
+
     public float getFrequency() {
         return frequency;
     }
 
-    @Override
-    public String toString() {
-        return this.name;
+    public String getName() {
+        return name;
     }
 
-    // public static Key[] all() {
-    // Key[] src = the128Keys;
-    // return Arrays.copyOf(src, src.length);
-    // }
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("[Key");
+        b.append(" index:").append(this.index);
+        b.append(" group:").append(this.group);
+        b.append(" tone:").append(this.tone);
+        b.append(" name:").append(this.name);
+        b.append(" freq:").append(this.frequency);
+        b.append(']');
+        return b.toString();
+    }
+
+    public static Key[] all() {
+        return Midi128Keys.allKeys();
+    }
+
+    public final static class Builder {
+
+        public int index;
+        public Group group;
+        public Tone tone;
+        public float frequency;
+
+        public Key build() {
+            return new Key(this);
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     /// private
 
-    // fields of instance
-
-    private final int index;
+    private final int index; // aka. MIDI number, 0-127
     private final Group group;
     private final Tone tone;
     private final float frequency;
     private final String name;
-
-    // static fields of class
 
     private Key(Builder b) {
         this.group = b.group;
         this.index = b.index;
         this.tone = b.tone;
         this.frequency = b.frequency;
-        this.name = b.tone + "" + b.group.getNumber();
+        this.name = b.tone.getName() + b.group.getNumber();
     }
 
 }
