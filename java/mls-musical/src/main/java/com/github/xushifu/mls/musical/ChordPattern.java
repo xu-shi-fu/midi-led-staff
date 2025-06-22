@@ -7,6 +7,14 @@ public final class ChordPattern {
         return inner.getName();
     }
 
+    public ToneStep[] getSteps(Tone root) {
+        return this.inner.getSteps(root);
+    }
+
+    public Tone[] getTones(Tone root) {
+        return this.inner.getTones(root);
+    }
+
     public static class Builder {
 
         private final TonePattern.Builder inner;

@@ -24,6 +24,24 @@ public final class Chord {
         return root;
     }
 
+    public ToneStep[] getSteps() {
+        return this.pattern.getSteps(root);
+    }
+
+    public Tone[] getTones() {
+        return this.pattern.getTones(root);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("[Chord");
+        b.append(" root:").append(this.root);
+        b.append(" pattern:").append(this.pattern.getName());
+        b.append("]");
+        return b.toString();
+    }
+
     public static class Builder {
 
         public Tone root;
