@@ -5,6 +5,8 @@ package com.github.xushifu.mls.musical;
  */
 public final class Key {
 
+    public static final Key NONE = makeKeyNone();
+
     public int getIndex() {
         return index;
     }
@@ -46,6 +48,22 @@ public final class Key {
         return Midi128Keys.allKeys();
     }
 
+    public static Key getKeyAt(int index) {
+        return Midi128Keys.getKeyAt(index);
+    }
+
+    public static boolean isAvailable(Key k) {
+        if (k == null) {
+            return false;
+        }
+        return k.isAvailable();
+    }
+
+    public boolean isAvailable() {
+        final int i = this.index;
+        return ((0 <= i) && (i < 128));
+    }
+
     public final static class Builder {
 
         public int index;
@@ -73,6 +91,15 @@ public final class Key {
         this.tone = b.tone;
         this.frequency = b.frequency;
         this.name = b.tone.getName() + b.group.getNumber();
+    }
+
+    private static Key makeKeyNone() {
+        Builder b = new Builder();
+        b.frequency = 0.1f;
+        b.group = Group.NONE;
+        b.index = -1;
+        b.tone = Tone.NONE;
+        return b.build();
     }
 
 }

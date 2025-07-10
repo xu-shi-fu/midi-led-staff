@@ -66,7 +66,6 @@ public final class StackRuntime implements Runnable {
     public void run() {
         try {
             this.run1();
-
         } catch (SocketException e) {
             if (!this.stopping) {
                 e.printStackTrace();
@@ -91,12 +90,13 @@ public final class StackRuntime implements Runnable {
 
         InetSocketAddress local = resolveAddress(this.stack.local);
         InetSocketAddress remote = resolveAddress(this.stack.remote);
+        DatagramSocket sock = null;
 
         this.stack.remote = remote;
         this.stack.local = local;
-        DatagramSocket sock = new DatagramSocket(local);
 
         try {
+            sock = new DatagramSocket(local);
             this.socket = sock;
             this.run2();
         } finally {

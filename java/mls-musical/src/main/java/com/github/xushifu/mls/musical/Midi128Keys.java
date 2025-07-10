@@ -8,7 +8,7 @@ import java.util.Arrays;
 final class Midi128Keys {
 
     public static Key[] allKeys() {
-        Key[] src = the128Keys;
+        Key[] src = theAllKeys;
         return Arrays.copyOf(src, src.length);
     }
 
@@ -23,16 +23,25 @@ final class Midi128Keys {
         return KeyArray.create(a1);
     }
 
+    public static Key getKeyAt(int index) {
+        Key[] src = theAllKeys;
+        Key k = null;
+        if ((0 <= index) && (index < src.length)) {
+            k = src[index];
+        }
+        return (k == null) ? Key.NONE : k;
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     /// private
 
-    private static final Key[] the128Keys = makeTheAll128Keys();
+    private static final Key[] theAllKeys = makeTheAllKeys();
 
     private Midi128Keys() {
     }
 
-    private static Key[] makeTheAll128Keys() {
-        return KeyFactory.makeTheAll128Keys();
+    private static Key[] makeTheAllKeys() {
+        return KeyFactory.makeTheAllKeys();
     }
 
 }

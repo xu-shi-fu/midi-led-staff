@@ -148,7 +148,7 @@ final class KeyFactory {
         return (diff > 0) ? 1 : -1;
     }
 
-    public static Key[] makeTheAll128Keys() {
+    public static Key[] makeTheAllKeys() {
 
         final List<Key> list = new ArrayList<>();
         final KeyGroupTemplate template1 = makeBaseTemplate();
@@ -180,7 +180,8 @@ final class KeyFactory {
         list.sort((a, b) -> compareKeys(a, b));
 
         Key[] array = list.toArray(new Key[0]);
-        return Arrays.copyOf(array, 128);
+        // return Arrays.copyOf(array, 128);
+        return Arrays.copyOf(array, array.length);
     }
 
 }

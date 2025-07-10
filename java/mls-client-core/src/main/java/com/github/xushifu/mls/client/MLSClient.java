@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bitwormhole.starter4j.application.Module;
 import com.github.xushifu.mls.client.core.clients.ClientService;
+import com.github.xushifu.mls.utils.IOUtils;
 
 public final class MLSClient implements Closeable {
 
@@ -46,12 +47,19 @@ public final class MLSClient implements Closeable {
         ctx.setClient(client);
         ctx.setConfig(cfg);
 
-        client = MLSClientFactory.initClientContext(ctx);
-        client.getServices().getClientService().ping(opt);
-
-        SocketAddress remote = ctx.getClientService().getUserAgent().getRemote();
-        logger.info("connected to " + remote);
-        return client;
+        boolean ok = false;
+        try {
+            client = MLSClientFactory.initClientContext(ctx);
+            client.getServices().getClientService().ping(opt);
+            SocketAddress remote = ctx.getClientService().getUserAgent().getRemote();
+            logger.info("connected to " + remote);
+            ok = true;
+            return client;
+        } finally {
+            if (!ok) {
+                IOUtils.close(client);
+            }
+        }
     }
 
     public MLSClientConfig getConfig() {

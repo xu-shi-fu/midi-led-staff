@@ -41,6 +41,9 @@ public class HomeFrame extends JFrame {
 
         this.addMenuItem("Ping", (ae) -> onClickMenuItemOpenFrame(PingFrame.class));
         this.addMenuItem("LED State Monitor", (ae) -> onClickMenuItemOpenFrame(LedMonitorFrame.class));
+        this.addMenuItem("Piano Frame", (ae) -> onClickMenuItemOpenFrame(PianoFrame.class));
+        this.addMenuItem("Canvas Keyboard Frame", (ae) -> onClickMenuItemOpenFrame(CanvasKeyboardFrame.class));
+
     }
 
     private SwingClientContext getSwingClientContext() {

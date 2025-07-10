@@ -12,6 +12,7 @@ import com.github.xushifu.mls.network.mlscp.layers.HandlerLayer;
 import com.github.xushifu.mls.network.mlscp.layers.MessageLayer;
 import com.github.xushifu.mls.network.mlscp.layers.MonitorLayer;
 import com.github.xushifu.mls.network.mlscp.layers.TransactionLayer;
+import com.github.xushifu.mls.utils.IOUtils;
 
 public class DefaultUserAgentBuilderFactory implements UserAgentBuilderFactory {
 
@@ -102,15 +103,24 @@ public class DefaultUserAgentBuilderFactory implements UserAgentBuilderFactory {
         }
 
         void open() {
+            boolean ok = false;
             StackRuntime rt = new StackRuntime(this.stack);
-            stack.runtime = rt;
-            rt.start();
-            rt.waitUntilStarted(this.stack.timeout);
+            try {
+                stack.runtime = rt;
+                rt.start();
+                rt.waitUntilStarted(this.stack.timeout);
+                ok = true;
+            } finally {
+                if (!ok) {
+                    IOUtils.close(this);
+                }
+            }
         }
 
         @Override
         public void close() throws IOException {
             StackRuntime rt = this.stack.runtime;
+            stack.runtime = null;
             if (rt == null) {
                 return;
             }

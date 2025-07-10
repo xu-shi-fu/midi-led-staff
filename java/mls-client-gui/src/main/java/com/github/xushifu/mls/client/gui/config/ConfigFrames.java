@@ -8,6 +8,8 @@ import com.bitwormhole.starter4j.application.ComponentTemplate.RegistrationT;
 import com.bitwormhole.starter4j.swing.FrameRegistration;
 import com.bitwormhole.starter4j.swing.FrameRegistry;
 import com.github.xushifu.mls.client.gui.frames.LoginFrame;
+import com.github.xushifu.mls.client.gui.frames.PianoFrame;
+import com.github.xushifu.mls.client.gui.frames.CanvasKeyboardFrame;
 import com.github.xushifu.mls.client.gui.frames.HomeFrame;
 import com.github.xushifu.mls.client.gui.frames.LedMonitorFrame;
 import com.github.xushifu.mls.client.gui.frames.PingFrame;
@@ -24,6 +26,8 @@ final class ConfigFrames {
             list.add(HomeFrame.registration());
             list.add(PingFrame.registration());
             list.add(LedMonitorFrame.registration());
+            list.add(PianoFrame.registration());
+            list.add(CanvasKeyboardFrame.registration());
 
             return list;
         }

@@ -32,6 +32,8 @@ public final class Tone {
     public final static Tone AF = GS;
     public final static Tone BF = AS;
 
+    public final static Tone NONE = create(-1, 'N', false);
+
     /***
      * 返回所有的 12个 音调
      */
@@ -71,6 +73,10 @@ public final class Tone {
         return "[Tone " + name + "]";
     }
 
+    public boolean isSharp() {
+        return this.sharp;
+    }
+
     public String getName() {
         return name;
     }
@@ -93,6 +99,14 @@ public final class Tone {
         }
         int count = all.length;
         return all[index % count];
+    }
+
+    public static boolean isAvailable(Tone tone) {
+        if (tone == null) {
+            return false;
+        }
+        char at = tone.at;
+        return (('A' <= at) && (at <= 'G'));
     }
 
     ////////////////////////////////////////////////////////////////////////////
