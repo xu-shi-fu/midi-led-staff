@@ -18,6 +18,10 @@ public interface KeyboardAdapter {
 
     KeyboardRange setAvailableRange(KeyboardRange range);
 
+    KeyboardRange getEnabledRange();
+
+    KeyboardRange setEnabledRange(KeyboardRange range);
+
     KeyHolder getKeyAt(int index);
 
     int getKeyCount();

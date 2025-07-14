@@ -8,8 +8,9 @@ public class DefaultKeyboardAdapter implements KeyboardAdapter {
     private final MyItem[] items;
     private final List<KeyboardAdapter.Listener> listeners;
 
-    private KeyboardRange viewport;
-    private KeyboardRange available;
+    private KeyboardRange viewport; // 可见的区间
+    private KeyboardRange enabled; // 激活的区间
+    private KeyboardRange available; // 可用的区间
     private int revision;
     private int revision_sync; // 跟随 revision 的值
 
@@ -18,7 +19,8 @@ public class DefaultKeyboardAdapter implements KeyboardAdapter {
         this.items = initItems(count);
         this.listeners = new ArrayList<>();
         this.available = new KeyboardRange(0, count);
-        this.viewport = new KeyboardRange(0, 12 * 5);
+        this.enabled = new KeyboardRange(12 * 2, 88);
+        this.viewport = new KeyboardRange(12 * 2, 61);
     }
 
     private class MyItem {
@@ -109,6 +111,21 @@ public class DefaultKeyboardAdapter implements KeyboardAdapter {
     @Override
     public KeyboardRange getViewportRange() {
         return normalize(this.viewport);
+    }
+
+    @Override
+    public KeyboardRange getEnabledRange() {
+        return normalize(this.enabled);
+    }
+
+    @Override
+    public KeyboardRange setEnabledRange(KeyboardRange range) {
+        range = normalize(range);
+        Updating up = new Updating();
+        up.inc_rev = true;
+        this.enabled = range;
+        this.innerUpdate(up);
+        return range;
     }
 
     @Override

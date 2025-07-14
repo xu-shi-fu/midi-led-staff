@@ -4,10 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
+import javax.swing.JComponent;
 
 import com.bitwormhole.starter4j.swing.FrameRegistration;
 import com.bitwormhole.starter4j.swing.Goal;
+import com.github.xushifu.mls.client.gui.widgets.CanvasKeyboardOverview;
 import com.github.xushifu.mls.client.gui.widgets.CanvasKeyboardView;
+import com.github.xushifu.mls.musical.DefaultKeyboardAdapter;
+import com.github.xushifu.mls.musical.KeyboardAdapter;
 
 public class CanvasKeyboardFrame extends JFrame {
 
@@ -26,8 +30,9 @@ public class CanvasKeyboardFrame extends JFrame {
 
     private void onCreate() {
 
-        CanvasKeyboardView viewSmall = this.createSmallView();
-        CanvasKeyboardView viewLarge = this.createBigView();
+        KeyboardAdapter ka = new DefaultKeyboardAdapter();
+        JComponent viewSmall = this.createSmallView(ka);
+        CanvasKeyboardView viewLarge = this.createBigView(ka);
 
         viewSmall.setPreferredSize(new Dimension(100, 100));
 
@@ -39,15 +44,18 @@ public class CanvasKeyboardFrame extends JFrame {
 
     }
 
-    private CanvasKeyboardView createSmallView() {
+    private CanvasKeyboardOverview createSmallView(KeyboardAdapter ka) {
 
-        CanvasKeyboardView.Builder builder = CanvasKeyboardView.newBuilder();
+        CanvasKeyboardOverview.Builder builder = CanvasKeyboardOverview.newBuilder();
+        builder.setKeyboard(ka);
 
         return builder.create();
     }
 
-    private CanvasKeyboardView createBigView() {
+    private CanvasKeyboardView createBigView(KeyboardAdapter ka) {
         CanvasKeyboardView.Builder builder = CanvasKeyboardView.newBuilder();
+        builder.setScrollable(true);
+        builder.setKeyboard(ka);
 
         return builder.create();
     }

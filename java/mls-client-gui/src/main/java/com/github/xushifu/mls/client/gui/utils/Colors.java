@@ -14,7 +14,12 @@ public final class Colors {
     }
 
     public static ARGB toARGB(int n) {
-        throw new RuntimeException("no impl");
+        ARGB res = new ARGB();
+        res.a = (byte) (0xff & (n >> 24));
+        res.r = (byte) (0xff & (n >> 16));
+        res.g = (byte) (0xff & (n >> 8));
+        res.b = (byte) (0xff & (n >> 0));
+        return res;
     }
 
     public static int toInt(Color c) {
@@ -25,7 +30,12 @@ public final class Colors {
     }
 
     public static int toInt(ARGB argb) {
-        throw new RuntimeException("no impl");
+        int n = 0;
+        n = (n << 8) | (0xff & argb.a);
+        n = (n << 8) | (0xff & argb.r);
+        n = (n << 8) | (0xff & argb.g);
+        n = (n << 8) | (0xff & argb.b);
+        return n;
     }
 
     public static ARGB toARGB(Color c) {

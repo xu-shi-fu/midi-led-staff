@@ -24,7 +24,6 @@ import com.bitwormhole.starter4j.swing.canvases.BoxContainer;
 import com.bitwormhole.starter4j.swing.canvases.BoxStyle;
 import com.bitwormhole.starter4j.swing.canvases.Canvas;
 import com.bitwormhole.starter4j.swing.canvases.CanvasAdapter;
-import com.bitwormhole.starter4j.swing.canvases.Getters;
 import com.bitwormhole.starter4j.swing.canvases.ILayout;
 import com.bitwormhole.starter4j.swing.canvases.LayoutContext;
 import com.bitwormhole.starter4j.swing.canvases.LineStyle;
@@ -32,30 +31,31 @@ import com.bitwormhole.starter4j.swing.canvases.MouseEventContext;
 import com.bitwormhole.starter4j.swing.canvases.RenderContext;
 import com.bitwormhole.starter4j.swing.canvases.MouseEventContext.MouseEvent;
 import com.bitwormhole.starter4j.swing.layouts.LinearLayout;
+import com.github.xushifu.mls.client.gui.utils.Colors;
+import com.github.xushifu.mls.musical.DefaultKeyboardAdapter;
+import com.github.xushifu.mls.musical.EmptyKeyHolder;
 import com.github.xushifu.mls.musical.Key;
+import com.github.xushifu.mls.musical.KeyHolder;
+import com.github.xushifu.mls.musical.KeyState;
+import com.github.xushifu.mls.musical.KeyboardAdapter;
+import com.github.xushifu.mls.musical.KeyboardAdapter.Listener;
+import com.github.xushifu.mls.musical.KeyboardRange;
 import com.github.xushifu.mls.musical.Tone;
+import com.github.xushifu.mls.network.mlscp.ARGB;
 
 public class CanvasKeyboardView extends JPanel {
 
     static final Logger logger = LoggerFactory.getLogger(CanvasKeyboardView.class);
 
-    // public static CanvasKeyboardView create() {
-    // CanvasKeyboardView view = new CanvasKeyboardView();
-    // view.onCreate();
-    // return view;
-    // }
-
-    public double getScale() {
-        return scale;
-    }
-
-    public void setScale(double scale) {
-        this.scale = scale;
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     public static class Builder {
 
         private boolean scrollable;
+        private KeyboardAdapter keyboard;
+        private CanvasKeyboardTheme theme;
 
         public Builder() {
         }
@@ -69,14 +69,35 @@ public class CanvasKeyboardView extends JPanel {
         }
 
         public CanvasKeyboardView create() {
+
+            if (this.keyboard == null) {
+                this.keyboard = new DefaultKeyboardAdapter();
+            }
+
+            if (this.theme == null) {
+                this.theme = new CanvasKeyboardTheme();
+            }
+
             CanvasKeyboardView view = new CanvasKeyboardView(this);
             view.onCreate();
             return view;
         }
+
+        public KeyboardAdapter getKeyboard() {
+            return keyboard;
+        }
+
+        public void setKeyboard(KeyboardAdapter keyboard) {
+            this.keyboard = keyboard;
+        }
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
+    public double getScale() {
+        return scale;
+    }
+
+    public void setScale(double scale) {
+        this.scale = scale;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -90,6 +111,8 @@ public class CanvasKeyboardView extends JPanel {
 
         InnerContext ctx = new InnerContext();
         ctx.scrollable = b.scrollable;
+        ctx.keyboard = b.keyboard;
+        ctx.theme = b.theme;
 
         this.scale = 1;
         this.mContext = ctx;
@@ -101,8 +124,19 @@ public class CanvasKeyboardView extends JPanel {
 
         this.onCreateKeys();
         this.onCreateLayout();
+        this.onCreateSmallWhiteKeyStyle();
+        this.setupKeyboardAdapterListener();
 
         logger.info(this + ".onCreate() : done");
+    }
+
+    private void onCreateSmallWhiteKeyStyle() {
+        BoxStyle st = new BoxStyle();
+        st.setBackgroundColor(null);
+        st.setForegroundColor(null);
+        st.setBorderStyle(LineStyle.NONE);
+        st.setBorderColor(null);
+        this.mContext.smallWhiteKeyStyle = st;
     }
 
     private void onCreateLayout() {
@@ -124,8 +158,13 @@ public class CanvasKeyboardView extends JPanel {
 
         // scroll-view
         ctx.scroller.setViewportView(adapter);
-        ctx.scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        ctx.scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        if (ctx.scrollable) {
+            ctx.scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            ctx.scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        } else {
+            ctx.scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            ctx.scroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        }
 
         // this
         this.setLayout(new BorderLayout());
@@ -143,7 +182,22 @@ public class CanvasKeyboardView extends JPanel {
         InnerKeyInfo[] all = ctx.keys;
         for (int i = 0; i < all.length; i++) {
             InnerKeyInfo info = new InnerKeyInfo(i);
+            info.initWith(ctx.keyboard);
             all[i] = info;
+        }
+    }
+
+    private void setupKeyboardAdapterListener() {
+        MyKeyboardAdapterListener li = new MyKeyboardAdapterListener();
+        this.mContext.keyboard.addListener(li);
+    }
+
+    private class MyKeyboardAdapterListener implements Listener {
+
+        @Override
+        public void onKeyboardUpdate(KeyboardAdapter adapter) {
+            InnerContext ctx = CanvasKeyboardView.this.mContext;
+            ctx.adapter.repaint();
         }
     }
 
@@ -169,9 +223,12 @@ public class CanvasKeyboardView extends JPanel {
         final JScrollPane scroller;
         final InnerKeyInfo[] keys; // 12(keys) x 11(group) = 132(keys)
 
+        BoxStyle smallWhiteKeyStyle;
+        CanvasKeyboardTheme theme;
         InnerSmallKeyBar smallKeyBar;
         InnerBigKeyBar bigKeyBar;
         boolean scrollable;
+        KeyboardAdapter keyboard;
 
         InnerContext() {
 
@@ -183,11 +240,23 @@ public class CanvasKeyboardView extends JPanel {
             this.scroller = new JScrollPane();
         }
 
+        @Override
+        public int hashCode() {
+            nop(this.bigKeyBar);
+            nop(this.smallKeyBar);
+            return super.hashCode();
+        }
+
+    }
+
+    private static void nop(Object o) {
     }
 
     private static class InnerView extends CGroup {
 
-        final InnerContext context;
+        // InnerView 是好几个内部视图的超类
+
+        protected final InnerContext context;
 
         InnerView(InnerContext ctx) {
             this.context = ctx;
@@ -221,20 +290,47 @@ public class CanvasKeyboardView extends JPanel {
         // @Override
         void onCreateKey() {
 
-            BoxStyle st = this.getStyle();
-            st = Getters.notNull(st);
-
-            st.setBorderLeftColor(Color.red);
-            st.setBorderLeftStyle(LineStyle.SOLID);
-            st.setBorderLeftWidth(1);
-
-            st.setBackgroundColor(Color.gray);
-
-            this.setStyle(st);
             this.setWeight(1);
 
-            // this.setWantSize(new Dimension());
-            // this.setSize(new Dimension());
+            int idx = this.info.index;
+            CanvasKeyboardTheme.Selector sel = this.info.styleSelector;
+            sel.available = ((0 <= idx) && (idx < 128));
+            sel.sharp = this.isBlackKey();
+        }
+
+        @Override
+        public BoxStyle getStyle() {
+
+            // select style
+            CanvasKeyboardTheme.Selector sel = this.info.styleSelector;
+            CanvasKeyboardTheme theme = this.context.theme;
+
+            // sel.available = false;
+            // sel.sharp = false;
+            sel.enabled = this.isThisKeyEnabled();
+            sel.pressed = this.isThisKeyPressed();
+            sel.hover = this.isThisKeyHover();
+
+            return theme.selectStyle(sel);
+        }
+
+        boolean isThisKeyPressed() {
+            KeyState state = this.info.keyHolder.getState();
+            return state.isPressed();
+        }
+
+        boolean isThisKeyHover() {
+            Box hover = this.context.canvas.getHover();
+            return this.equals(hover);
+        }
+
+        boolean isThisKeyEnabled() {
+            KeyboardAdapter kb = this.context.keyboard;
+            KeyboardRange range = kb.getEnabledRange();
+            int idx = this.info.index;
+            int i1 = range.getOffset();
+            int i2 = i1 + range.getCount();
+            return (i1 <= idx) && (idx < i2);
         }
 
         boolean isBlackKey() {
@@ -246,9 +342,33 @@ public class CanvasKeyboardView extends JPanel {
             super.onMouseEvent(mec);
 
             MouseEvent evt = mec.getEvent();
+
             if (MouseEvent.MOVED.equals(evt)) {
                 this.setKeyTipText();
+                this.setCurrentHover(this);
+                mec.setCancelled(true);
+                this.context.adapter.repaint();
+
+            } else if (MouseEvent.PRESSED.equals(evt)) {
+                this.setKeyPressed(true);
+                mec.setCancelled(true);
+
+            } else if (MouseEvent.RELEASED.equals(evt)) {
+                this.setKeyPressed(false);
+                mec.setCancelled(true);
             }
+        }
+
+        void setKeyPressed(boolean pressed) {
+            KeyHolder kh = this.info.keyHolder;
+            KeyState state = kh.getState();
+            state.setPressed(pressed);
+            kh.setState(state);
+            this.context.keyboard.update(false);
+        }
+
+        void setCurrentHover(Box target) {
+            this.context.canvas.setHover(target);
         }
 
         void setKeyTipText() {
@@ -280,6 +400,7 @@ public class CanvasKeyboardView extends JPanel {
             String name = "";
             CLabel label = new CLabel();
             CSpace space = new CSpace();
+            BoxStyle my_style = this.getStyle();
 
             if (isCKey(key)) {
                 name = key.getName();
@@ -292,6 +413,7 @@ public class CanvasKeyboardView extends JPanel {
             label.setWeight(10);
             label.setWantSize(null);
             label.getStyle().setBackgroundColor(null);
+            label.getStyle().setFont(my_style.getFont());
 
             this.setLayout(new LinearLayout(LinearLayout.VERTICAL));
             this.add(space);
@@ -307,34 +429,6 @@ public class CanvasKeyboardView extends JPanel {
         @Override
         void onCreateKey() {
             super.onCreateKey();
-
-            BoxStyle st = this.getStyle();
-            st = Getters.notNull(st);
-            this.applyBaseStyle(st);
-            if (this.info.key.isAvailable()) {
-                this.applyNormalStyle(st);
-            }
-
-            this.setStyle(st);
-        }
-
-        void applyBaseStyle(BoxStyle bs) {
-            bs.setBorderTopStyle(null);
-            bs.setBorderLeftStyle(null);
-            bs.setBorderRightStyle(null);
-            bs.setBorderBottomStyle(null);
-
-            bs.setBorderTopColor(null);
-            bs.setBorderLeftColor(null);
-            bs.setBorderRightColor(null);
-            bs.setBorderBottomColor(null);
-        }
-
-        void applyNormalStyle(BoxStyle bs) {
-            bs.setBackgroundColor(Color.white);
-            bs.setBorderColor(Color.black);
-            bs.setBorderStyle(LineStyle.SOLID);
-            bs.setBorderWidth(1);
         }
 
         @Override
@@ -349,6 +443,9 @@ public class CanvasKeyboardView extends JPanel {
         final int index;
         final Tone tone;
         final Key key;
+        final CanvasKeyboardTheme.Selector styleSelector;
+
+        KeyHolder keyHolder;
 
         InnerKeyInfo(int idx) {
 
@@ -357,6 +454,18 @@ public class CanvasKeyboardView extends JPanel {
             this.index = idx;
             this.key = k;
             this.tone = k.getTone();
+            this.styleSelector = new CanvasKeyboardTheme.Selector();
+        }
+
+        void initWith(KeyboardAdapter ka) {
+
+            KeyHolder kh = ka.getKeyAt(this.index);
+            if (kh == null) {
+                kh = new EmptyKeyHolder();
+            }
+            this.keyHolder = kh;
+
+            // nop(this.keyHolder);
         }
 
     }
@@ -402,6 +511,8 @@ public class CanvasKeyboardView extends JPanel {
             this.setLayout(new InnerLinearLayout(LinearLayout.HORIZONTAL));
 
             this.onCreateKeys();
+
+            nop(this.keys);
         }
 
         private void onCreateKeys() {
@@ -438,11 +549,13 @@ public class CanvasKeyboardView extends JPanel {
         void onCreate() {
             super.onCreate();
             this.onCreateLED();
+
+            nop(this.mLED);
         }
 
         void onCreateLED() {
 
-            InnerLED led = new InnerLED();
+            InnerLED led = new InnerLED(this.context, this.info);
             CSpace space = new CSpace();
 
             led.setWeight(25);
@@ -460,44 +573,19 @@ public class CanvasKeyboardView extends JPanel {
         @Override
         void onCreateKey() {
             super.onCreateKey();
-
-            BoxStyle st = this.getStyle();
-            st = Getters.notNull(st);
-
-            this.applyDefaultStyle(st);
-            if (this.isBlackKey()) {
-                this.applyBlackKeyStyle(st);
-            } else {
-                this.applyWhiteKeyStyle(st);
-            }
-            this.setStyle(st);
         }
 
-        void applyDefaultStyle(BoxStyle st) {
-
-            st.setBorderTopColor(null);
-            st.setBorderLeftColor(null);
-            st.setBorderRightColor(null);
-            st.setBorderBottomColor(null);
-
-            st.setBorderTopStyle(null);
-            st.setBorderLeftStyle(null);
-            st.setBorderRightStyle(null);
-            st.setBorderBottomStyle(null);
+        @Override
+        public BoxStyle getStyle() {
+            if (this.isSmallWhiteKey()) {
+                return this.context.smallWhiteKeyStyle;
+            }
+            return super.getStyle();
         }
 
-        void applyBlackKeyStyle(BoxStyle st) {
-            if (this.info.key.isAvailable()) {
-                st.setBackgroundColor(Color.black);
-                st.setBorderColor(Color.gray);
-            }
-        }
-
-        void applyWhiteKeyStyle(BoxStyle st) {
-            if (this.info.key.isAvailable()) {
-                st.setBackgroundColor(null);
-                st.setBorderStyle(LineStyle.NONE);
-            }
+        boolean isSmallWhiteKey() {
+            boolean sharp = this.info.tone.isSharp();
+            return !sharp;
         }
     }
 
@@ -519,6 +607,8 @@ public class CanvasKeyboardView extends JPanel {
             this.setStyle(st);
 
             this.onCreateKeys();
+
+            nop(this.keys);
         }
 
         private void onCreateKeys() {
@@ -539,11 +629,24 @@ public class CanvasKeyboardView extends JPanel {
 
     }
 
-    private static class InnerLED extends CSpace {
+    private static class InnerLED extends InnerView {
+
+        final InnerKeyInfo info;
+
+        InnerLED(InnerContext ctx, InnerKeyInfo ki) {
+            super(ctx);
+            this.info = ki;
+        }
+
+        @Override
+        protected void onPaintBackground(RenderContext rc) {
+            // super.onPaintBackground(rc);
+        }
 
         @Override
         protected void onPaintForeground(RenderContext rc) {
-            super.onPaintForeground(rc);
+
+            // super.onPaintForeground(rc);
 
             Dimension my_size = this.getSize();
             Point my_pos = this.getPositionAtCanvas();
@@ -553,13 +656,23 @@ public class CanvasKeyboardView extends JPanel {
                 return;
             }
 
-            Color color = Color.yellow;
+            Color color = this.getLedColor();
             final int w = my_size.width;
             final int padding = 2;
             final int padding2 = 2 * padding;
 
             g.setColor(color);
             g.fillOval(my_pos.x + padding, my_pos.y + padding, w - padding2, w - padding2);
+        }
+
+        Color getLedColor() {
+            KeyState ks = this.info.keyHolder.getState();
+            // ks = null;
+            if (ks == null) {
+                return Color.yellow;
+            }
+            ARGB argb = Colors.toARGB(ks.getColor());
+            return Colors.toColor(argb);
         }
 
     }
@@ -616,14 +729,24 @@ public class CanvasKeyboardView extends JPanel {
 
         void onResize(InnerContext ctx, Dimension size) {
             // 改变 adapter 的大小
-
-            size = new Dimension(size);
-            size.width = 1024 * 3;
-            size.height -= 50;
-
+            size = this.computeCanvasSize(ctx, size, ctx.scrollable);
             CanvasAdapter ada = ctx.adapter;
-            // ada.setSize(size);
             ada.setPreferredSize(size);
+        }
+
+        Dimension computeCanvasSize(InnerContext ctx, Dimension size, boolean scrollable) {
+            int w, h;
+            w = size.width;
+            h = size.height;
+            if (scrollable) {
+                // todo ...
+                KeyboardRange range = ctx.keyboard.getViewportRange();
+                int count = range.getCount();
+                int total = ctx.keys.length;
+                count = (count > 0) ? count : 1;
+                w = (total * size.width) / count;
+            }
+            return new Dimension(w, h);
         }
 
         @Override
