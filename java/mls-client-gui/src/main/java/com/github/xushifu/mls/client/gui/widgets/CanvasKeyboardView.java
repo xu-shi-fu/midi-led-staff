@@ -1,15 +1,18 @@
 package com.github.xushifu.mls.client.gui.widgets;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -31,6 +34,7 @@ import com.bitwormhole.starter4j.swing.canvases.MouseEventContext;
 import com.bitwormhole.starter4j.swing.canvases.RenderContext;
 import com.bitwormhole.starter4j.swing.canvases.MouseEventContext.MouseEvent;
 import com.bitwormhole.starter4j.swing.layouts.LinearLayout;
+import com.bitwormhole.starter4j.swing.layouts.SimpleLayout;
 import com.github.xushifu.mls.client.gui.utils.Colors;
 import com.github.xushifu.mls.musical.DefaultKeyboardAdapter;
 import com.github.xushifu.mls.musical.EmptyKeyHolder;
@@ -38,12 +42,12 @@ import com.github.xushifu.mls.musical.Key;
 import com.github.xushifu.mls.musical.KeyHolder;
 import com.github.xushifu.mls.musical.KeyState;
 import com.github.xushifu.mls.musical.KeyboardAdapter;
+import com.github.xushifu.mls.musical.KeyboardEvent;
 import com.github.xushifu.mls.musical.KeyboardAdapter.Listener;
 import com.github.xushifu.mls.musical.KeyboardRange;
 import com.github.xushifu.mls.musical.Tone;
-import com.github.xushifu.mls.network.mlscp.ARGB;
 
-public class CanvasKeyboardView extends JPanel {
+public class CanvasKeyboardView extends JPanel implements IKeyboardView {
 
     static final Logger logger = LoggerFactory.getLogger(CanvasKeyboardView.class);
 
@@ -147,11 +151,16 @@ public class CanvasKeyboardView extends JPanel {
         final InnerSmallKeyBar smallKeyBar = new InnerSmallKeyBar(ctx);
         final InnerBigKeyBar bigKeyBar = new InnerBigKeyBar(ctx);
         final InnerKeyBarLayout keyBarLayout = new InnerKeyBarLayout(bigKeyBar, smallKeyBar);
+        final CGroup keyBarContainer = new CGroup();
+
+        // key-Bar-Container
+        keyBarContainer.setLayout(keyBarLayout);
+        keyBarContainer.add(bigKeyBar);
+        keyBarContainer.add(smallKeyBar);
 
         // canvas
-        canvas.setLayout(keyBarLayout);
-        canvas.add(bigKeyBar);
-        canvas.add(smallKeyBar);
+        canvas.setLayout(new SimpleLayout());
+        canvas.add(keyBarContainer);
 
         // adapter
         adapter.setSize(new Dimension(1024, 100));
@@ -195,9 +204,12 @@ public class CanvasKeyboardView extends JPanel {
     private class MyKeyboardAdapterListener implements Listener {
 
         @Override
-        public void onKeyboardUpdate(KeyboardAdapter adapter) {
+        public void onKeyboardEvent(KeyboardEvent event) {
             InnerContext ctx = CanvasKeyboardView.this.mContext;
-            ctx.adapter.repaint();
+            KeyboardEvent.EventType type = event.getType();
+            if (KeyboardEvent.EventType.STATE_CHANGE.equals(type)) {
+                ctx.adapter.repaint();
+            }
         }
     }
 
@@ -651,6 +663,7 @@ public class CanvasKeyboardView extends JPanel {
             Dimension my_size = this.getSize();
             Point my_pos = this.getPositionAtCanvas();
             final Graphics g = rc.getGraphics();
+            final Graphics2D g2d = (Graphics2D) g;
 
             if (my_size == null || my_pos == null) {
                 return;
@@ -663,6 +676,50 @@ public class CanvasKeyboardView extends JPanel {
 
             g.setColor(color);
             g.fillOval(my_pos.x + padding, my_pos.y + padding, w - padding2, w - padding2);
+
+            g2d.setStroke(new BasicStroke(1f));
+            g.setColor(Color.gray);
+            g.drawOval(my_pos.x + padding, my_pos.y + padding, w - padding2, w - padding2);
+        }
+
+        @Override
+        protected void onMouseEvent(MouseEventContext mec) {
+            super.onMouseEvent(mec);
+
+            MouseEventContext.MouseEvent evt = mec.getEvent();
+            if (evt == null) {
+                // NOP
+            } else if (evt.equals(MouseEventContext.MouseEvent.PRESSED)) {
+                logger.info("InnerLED.onMouseEvent(): MouseEvent.PRESSED");
+                mec.setCancelled(true);
+                this.dispatchLEDEvent(evt);
+            } else if (evt.equals(MouseEventContext.MouseEvent.RELEASED)) {
+                logger.info("InnerLED.onMouseEvent(): MouseEvent.RELEASED");
+                mec.setCancelled(true);
+                this.dispatchLEDEvent(evt);
+            }
+        }
+
+        private void dispatchLEDEvent(MouseEventContext.MouseEvent evt) {
+
+            KeyboardAdapter ka = this.context.keyboard;
+            KeyboardEvent kEvent = new KeyboardEvent();
+
+            if (evt == null) {
+                return;
+            } else if (evt.equals(MouseEventContext.MouseEvent.PRESSED)) {
+                kEvent.setType(KeyboardEvent.EventType.LED_PRESSED);
+            } else if (evt.equals(MouseEventContext.MouseEvent.RELEASED)) {
+                kEvent.setType(KeyboardEvent.EventType.LED_RELEASED);
+            } else {
+                return;
+            }
+
+            kEvent.setAdapter(ka);
+            kEvent.setSource(this);
+            kEvent.setKey(this.info.key);
+
+            ka.dispatch(kEvent);
         }
 
         Color getLedColor() {
@@ -671,10 +728,8 @@ public class CanvasKeyboardView extends JPanel {
             if (ks == null) {
                 return Color.yellow;
             }
-            ARGB argb = Colors.toARGB(ks.getColor());
-            return Colors.toColor(argb);
+            return Colors.toAWT(ks.getLightColor());
         }
-
     }
 
     private static class InnerKeyBarLayout implements ILayout, ComponentListener {
@@ -768,6 +823,26 @@ public class CanvasKeyboardView extends JPanel {
         public void componentHidden(ComponentEvent e) {
         }
 
+    }
+
+    @Override
+    public Canvas getCanvas() {
+        return this.mContext.canvas;
+    }
+
+    @Override
+    public CanvasAdapter getCanvasAdapter() {
+        return this.mContext.adapter;
+    }
+
+    @Override
+    public KeyboardAdapter getKeyboardAdapter() {
+        return this.mContext.keyboard;
+    }
+
+    @Override
+    public JComponent getComponent() {
+        return this;
     }
 
 }

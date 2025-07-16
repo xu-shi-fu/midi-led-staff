@@ -3,7 +3,7 @@ package com.github.xushifu.mls.musical;
 public interface KeyboardAdapter {
 
     public interface Listener {
-        void onKeyboardUpdate(KeyboardAdapter adapter);
+        void onKeyboardEvent(KeyboardEvent event);
     }
 
     void addListener(Listener l);
@@ -29,5 +29,7 @@ public interface KeyboardAdapter {
     int getRevision();
 
     void update(boolean force);
+
+    void dispatch(KeyboardEvent event);
 
 }

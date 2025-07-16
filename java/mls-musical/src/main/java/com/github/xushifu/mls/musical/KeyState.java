@@ -9,7 +9,7 @@ public class KeyState {
     private boolean available;
     private byte velocity;
     private int revision;
-    private int color;
+    private int color; // value of class:LightColor
 
     public KeyState() {
     }
@@ -50,8 +50,17 @@ public class KeyState {
         return color;
     }
 
+    public LightColor getLightColor() {
+        return LightColor.colorOf(this.color);
+    }
+
     public void setColor(int color) {
         this.color = color;
+    }
+
+    public void setColor(LightColor c) {
+        c = LightColor.notNull(c);
+        this.color = c.getValue();
     }
 
     public void set(KeyState src) {

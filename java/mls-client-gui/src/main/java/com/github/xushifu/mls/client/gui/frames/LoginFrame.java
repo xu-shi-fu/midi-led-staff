@@ -65,7 +65,7 @@ public class LoginFrame extends JFrame {
         panel.add(mTextClientPort);
         panel.add(mButtonConnect);
 
-        mTextServerHost.setText("192.168.0.101"); // TODO: set default ip here
+        mTextServerHost.setText("192.168.0.104"); // TODO: set default ip here ('.101' | '.104')
         mTextServerPort.setText("7923");
         mTextClientPort.setText("7921");
 

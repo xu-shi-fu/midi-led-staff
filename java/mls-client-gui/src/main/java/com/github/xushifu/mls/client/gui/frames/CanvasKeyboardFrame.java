@@ -8,8 +8,8 @@ import javax.swing.JComponent;
 
 import com.bitwormhole.starter4j.swing.FrameRegistration;
 import com.bitwormhole.starter4j.swing.Goal;
-import com.github.xushifu.mls.client.gui.widgets.CanvasKeyboardOverview;
-import com.github.xushifu.mls.client.gui.widgets.CanvasKeyboardView;
+import com.github.xushifu.mls.client.gui.widgets.ComplexKeyboardViewBuilder;
+import com.github.xushifu.mls.client.gui.widgets.IKeyboardView;
 import com.github.xushifu.mls.musical.DefaultKeyboardAdapter;
 import com.github.xushifu.mls.musical.KeyboardAdapter;
 
@@ -31,8 +31,8 @@ public class CanvasKeyboardFrame extends JFrame {
     private void onCreate() {
 
         KeyboardAdapter ka = new DefaultKeyboardAdapter();
-        JComponent viewSmall = this.createSmallView(ka);
-        CanvasKeyboardView viewLarge = this.createBigView(ka);
+        JComponent viewSmall = this.createSmallView(ka).getComponent();
+        JComponent viewLarge = this.createBigView(ka).getComponent();
 
         viewSmall.setPreferredSize(new Dimension(100, 100));
 
@@ -44,19 +44,21 @@ public class CanvasKeyboardFrame extends JFrame {
 
     }
 
-    private CanvasKeyboardOverview createSmallView(KeyboardAdapter ka) {
-
-        CanvasKeyboardOverview.Builder builder = CanvasKeyboardOverview.newBuilder();
-        builder.setKeyboard(ka);
-
+    private IKeyboardView createSmallView(KeyboardAdapter ka) {
+        ComplexKeyboardViewBuilder builder = new ComplexKeyboardViewBuilder();
+        builder.setAdapter(ka);
+        builder.setAsColorSelector(false);
+        builder.setAsOverview(true);
+        builder.setScrollable(false);
         return builder.create();
     }
 
-    private CanvasKeyboardView createBigView(KeyboardAdapter ka) {
-        CanvasKeyboardView.Builder builder = CanvasKeyboardView.newBuilder();
+    private IKeyboardView createBigView(KeyboardAdapter ka) {
+        ComplexKeyboardViewBuilder builder = new ComplexKeyboardViewBuilder();
+        builder.setAdapter(ka);
+        builder.setAsColorSelector(true);
+        builder.setAsOverview(false);
         builder.setScrollable(true);
-        builder.setKeyboard(ka);
-
         return builder.create();
     }
 

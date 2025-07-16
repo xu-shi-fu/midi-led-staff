@@ -2,40 +2,18 @@ package com.github.xushifu.mls.client.gui.utils;
 
 import java.awt.Color;
 
+import com.github.xushifu.mls.musical.LightColor;
 import com.github.xushifu.mls.network.mlscp.ARGB;
 
 public final class Colors {
 
+    // 说明:
+    // ARGB 用于网络通信;
+    // awt.Color 用于UI显示;
+    // LightColor 用于运行时数据;
+    // 这里 : int(awt.Color) == int(LightColor)
+
     private Colors() {
-    }
-
-    public static Color toColor(int n) {
-        return new Color(n);
-    }
-
-    public static ARGB toARGB(int n) {
-        ARGB res = new ARGB();
-        res.a = (byte) (0xff & (n >> 24));
-        res.r = (byte) (0xff & (n >> 16));
-        res.g = (byte) (0xff & (n >> 8));
-        res.b = (byte) (0xff & (n >> 0));
-        return res;
-    }
-
-    public static int toInt(Color c) {
-        if (c == null) {
-            return 0;
-        }
-        return c.getRGB();
-    }
-
-    public static int toInt(ARGB argb) {
-        int n = 0;
-        n = (n << 8) | (0xff & argb.a);
-        n = (n << 8) | (0xff & argb.r);
-        n = (n << 8) | (0xff & argb.g);
-        n = (n << 8) | (0xff & argb.b);
-        return n;
     }
 
     public static ARGB toARGB(Color c) {
@@ -50,7 +28,7 @@ public final class Colors {
         return x;
     }
 
-    public static Color toColor(ARGB argb) {
+    public static Color toAWT(ARGB argb) {
         if (argb == null) {
             return new Color(0);
         }
@@ -59,6 +37,28 @@ public final class Colors {
         int g = argb.g & 0xff;
         int b = argb.b & 0xff;
         return new Color(r, g, b, a);
+    }
+
+    public static Color toAWT(LightColor lc) {
+        int n = LightColors.toInt(lc);
+        return AWTColors.toColor(n);
+    }
+
+    public static LightColor toLight(Color c) {
+        int n = AWTColors.toInt(c);
+        return LightColor.colorOf(n);
+    }
+
+    public static LightColor toLight(ARGB argb) {
+        // argb -> awt -> lc
+        Color c1 = toAWT(argb);
+        return toLight(c1);
+    }
+
+    public static ARGB toARGB(LightColor lc) {
+        // lc -> awt -> argb
+        Color c1 = toAWT(lc);
+        return toARGB(c1);
     }
 
 }

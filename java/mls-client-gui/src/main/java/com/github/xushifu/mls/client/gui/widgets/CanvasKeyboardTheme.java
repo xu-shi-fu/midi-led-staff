@@ -217,12 +217,14 @@ public class CanvasKeyboardTheme {
             BoxStyle style = this.createStyleBase();
             // style.setBackgroundColor(new Color(240, 240, 240));
             style.setBackgroundColor(Color.WHITE);
+            style.setBorderWidth(3);
             return style;
         }
 
         BoxStyle createStyleForBlackHover() {
             BoxStyle style = this.createStyleBase();
             style.setBackgroundColor(new Color(50, 50, 50));
+            style.setBorderWidth(3);
             return style;
         }
 

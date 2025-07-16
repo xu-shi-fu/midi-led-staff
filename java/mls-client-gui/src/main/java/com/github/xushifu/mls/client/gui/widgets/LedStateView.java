@@ -50,15 +50,15 @@ public class LedStateView extends JPanel {
         }
 
         Color getRx() {
-            return Colors.toColor(target.getRx());
+            return Colors.toAWT(target.getRx());
         }
 
         Color getMx() {
-            return Colors.toColor(target.getMx());
+            return Colors.toAWT(target.getMx());
         }
 
         Color getTx() {
-            return Colors.toColor(target.getTx());
+            return Colors.toAWT(target.getTx());
         }
 
         void setRx(Color c) {

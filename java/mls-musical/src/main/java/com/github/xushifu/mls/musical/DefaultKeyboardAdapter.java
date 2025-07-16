@@ -210,15 +210,24 @@ public class DefaultKeyboardAdapter implements KeyboardAdapter {
             }
         }
 
+        final KeyboardEvent event = new KeyboardEvent();
+        event.setAdapter(this);
+        event.setType(KeyboardEvent.EventType.STATE_CHANGE);
+
         this.revision_sync = this.revision;
-        this.listeners.forEach((item) -> {
-            item.onKeyboardUpdate(DefaultKeyboardAdapter.this);
-        });
+        this.dispatch(event);
     }
 
     @Override
     public int getRevision() {
         return this.revision;
+    }
+
+    @Override
+    public void dispatch(KeyboardEvent event) {
+        this.listeners.forEach((li) -> {
+            li.onKeyboardEvent(event);
+        });
     }
 
 }

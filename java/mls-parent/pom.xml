@@ -12,7 +12,7 @@
 
     <properties>
         <mls.version>0.0.1</mls.version>
-        <starter4j.version>0.0.8-r15-dev-snapshot</starter4j.version>
+        <starter4j.version>0.0.8-r16-dev-snapshot</starter4j.version>
     </properties>
 
     <profiles>

@@ -1,12 +1,11 @@
 package com.github.xushifu.mls.client.gui.frames;
 
-import java.awt.BorderLayout;
-
 import javax.swing.JFrame;
 
 import com.bitwormhole.starter4j.swing.FrameRegistration;
 import com.bitwormhole.starter4j.swing.Goal;
-import com.github.xushifu.mls.client.gui.widgets.PianoKeyboardView;
+
+@Deprecated
 
 public class PianoFrame extends JFrame {
 
@@ -28,14 +27,14 @@ public class PianoFrame extends JFrame {
         f.setTitle(f.getClass().getSimpleName());
         f.setSize(480, 360);
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.onCreate();
+        // f.onCreate();
         return f;
     }
 
-    private void onCreate() {
-        this.setLayout(new BorderLayout());
-        PianoKeyboardView view = PianoKeyboardView.create();
-        this.add(view, BorderLayout.SOUTH);
-    }
+    // private void onCreate() {
+    // this.setLayout(new BorderLayout());
+    // PianoKeyboardView view = PianoKeyboardView.create();
+    // this.add(view, BorderLayout.SOUTH);
+    // }
 
 }
